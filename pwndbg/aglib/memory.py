@@ -372,12 +372,12 @@ def pack_struct_into_dictionary(
         for index, field in enumerate(fetched_struct.type.fields()):
             if field.name is None:
                 # Flatten anonymous structs/unions
-                anon_type = convert_pwndbg_value_to_python_value(fetched_struct[field])
+                anon_type = convert_pwndbg_value_to_python_value(fetched_struct[index])
                 assert isinstance(anon_type, dict)
                 struct_as_dictionary.update(anon_type)
             elif field.name not in exclude_fields:
                 key = field.name
-                value = convert_pwndbg_value_to_python_value(fetched_struct[field])
+                value = convert_pwndbg_value_to_python_value(fetched_struct[index])
                 struct_as_dictionary[key] = value
 
     return struct_as_dictionary
