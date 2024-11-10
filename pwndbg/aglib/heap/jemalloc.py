@@ -269,7 +269,9 @@ class RTree:
         subkey = self.__subkey(key, 1)
 
         addr = int(self.root.address) + subkey * rtree_node_elm_s.sizeof
-        fetched_struct = pwndbg.aglib.memory.get_typed_pointer_value("struct rtree_node_elm_s", addr)
+        fetched_struct = pwndbg.aglib.memory.get_typed_pointer_value(
+            "struct rtree_node_elm_s", addr
+        )
         child_repr = int(fetched_struct["child"]["repr"])  # type: ignore[index]
 
         # on node element, child contains the bits with which we can find another node or leaf element
@@ -279,7 +281,9 @@ class RTree:
         # For subkey 1
         subkey = self.__subkey(key, 2)
         addr = child_repr + subkey * rtree_leaf_elm_s.sizeof
-        fetched_struct = pwndbg.aglib.memory.get_typed_pointer_value("struct rtree_leaf_elm_s", addr)
+        fetched_struct = pwndbg.aglib.memory.get_typed_pointer_value(
+            "struct rtree_leaf_elm_s", addr
+        )
 
         # On leaf element, le_bits contains the virtual memory address bits so we can use it to find the extent address
         val = int(fetched_struct["le_bits"]["repr"])  # type: ignore[index]
