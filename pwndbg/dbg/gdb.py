@@ -1047,7 +1047,7 @@ class GDBValue(pwndbg.dbg_mod.Value):
     @override
     def __getitem__(self, key: str | int | pwndbg.dbg_mod.TypeField) -> pwndbg.dbg_mod.Value:
         if isinstance(key, pwndbg.dbg_mod.TypeField):
-            key = key.type
+            key = key.type.inner
         elif isinstance(key, int) and self.inner.type.strip_typedefs().code == gdb.TYPE_CODE_STRUCT:
             # GDB doesn't normally support indexing fields in a struct by int,
             # so we nudge it a little.
