@@ -335,7 +335,7 @@ class RTree:
                     fetched_struct = pwndbg.aglib.memory.get_typed_pointer_value(
                         rtree_node_elm_s, node_address
                     )
-                    leaf0: int = fetched_struct["child"]["repr"]  # type: ignore[index]
+                    leaf0 = int(fetched_struct["child"]["repr"])  # type: ignore[index]
                     if leaf0 == 0:
                         continue
 
@@ -349,7 +349,8 @@ class RTree:
                         fetched_struct = pwndbg.aglib.memory.get_typed_pointer_value(
                             rtree_leaf_elm_s, leaf_address
                         )
-                        if (val := int(fetched_struct["le_bits"]["repr"])) == 0:  # type: ignore[index, arg-type]
+                        val = int(fetched_struct["le_bits"]["repr"])  # type: ignore[index]
+                        if val == 0:
                             continue
 
                         # print("leaf: ", hex(leaf_address))
