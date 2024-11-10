@@ -377,7 +377,7 @@ def pack_struct_into_dictionary(
                 struct_as_dictionary.update(anon_type)
             elif field.name not in exclude_fields:
                 key = field.name
-                value = convert_pwndbg_value_to_python_value(fetched_struct[index])
+                value = convert_pwndbg_value_to_python_value(fetched_struct[field.name])
                 struct_as_dictionary[key] = value
 
     return struct_as_dictionary
