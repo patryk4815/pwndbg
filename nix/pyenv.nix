@@ -28,7 +28,7 @@ pkgs.poetry2nix.mkPoetryEnv {
       });
 
       unicorn = python3.pkgs.unicorn.overridePythonAttrs (old: {
-        doInstallCheck = false;
+        doCheck = false;
       });
 
       capstone =
