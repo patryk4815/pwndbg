@@ -15,7 +15,6 @@ pkgs.poetry2nix.mkPoetryEnv {
   overrides = pkgs.poetry2nix.overrides.withDefaults (
     self: super: {
       pip = python3.pkgs.pip; # fix infinite loop in nix, look here: https://github.com/nix-community/poetry2nix/issues/1184#issuecomment-1644878841
-      unicorn = python3.pkgs.unicorn; # fix build for aarch64 (but it will use same version like in nixpkgs)
 
       # disable build from source, because rust's hash had to be repaired many times, see: PR https://github.com/pwndbg/pwndbg/pull/2024
       cryptography = super.cryptography.override { preferWheel = true; };
@@ -26,6 +25,10 @@ pkgs.poetry2nix.mkPoetryEnv {
 
       pt = super.pt.overridePythonAttrs (old: {
         buildInputs = (old.buildInputs or [ ]) ++ [ super.poetry-core ];
+      });
+
+      unicorn = python3.pkgs.unicorn.overridePythonAttrs (old: {
+        doInstallCheck = false;
       });
 
       capstone =
