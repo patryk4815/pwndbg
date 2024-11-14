@@ -28,12 +28,14 @@ pkgs.poetry2nix.mkPoetryEnv {
       });
 
       # Fix psutil on darwin
-      psutil = super.psutil.overridePythonAttrs (old: pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
+      psutil = (super.psutil.overridePythonAttrs (old: pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
         NIX_CFLAGS_COMPILE = "-DkIOMainPortDefault=0";
         buildInputs = old.buildInputs or [ ]
           ++ pkgs.lib.optionals pkgs.stdenv.isx86_64 [ pkgs.darwin.apple_sdk.frameworks.CoreFoundation ]
           ++ [ pkgs.darwin.apple_sdk.frameworks.IOKit ];
-      });
+      })).override {
+        stdenv = if pkgs.stdenv.isDarwin then pkgs.overrideSDK pkgs.stdenv "11.0" else pkgs.stdenv;
+      };
 
       # Only on github-actions darwin failes with segfault, so disable install tests
       unicorn = python3.pkgs.unicorn.overridePythonAttrs (old: pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
