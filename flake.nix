@@ -3,7 +3,7 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   inputs.poetry2nix = {
-    url = "github:nix-community/poetry2nix/8e965fd42c0da4357c53d987bc62b54a954424da";
+    url = "github:nix-community/poetry2nix";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
