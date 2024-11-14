@@ -27,14 +27,18 @@ pkgs.poetry2nix.mkPoetryEnv {
         buildInputs = (old.buildInputs or [ ]) ++ [ super.poetry-core ];
       });
 
-      unicorn =
-        # Only on github-actions darwin failes with segfault, so disable install tests
-        if pkgs.stdenv.isDarwin then
-          python3.pkgs.unicorn.overridePythonAttrs (old: {
-            doCheck = false;
-          })
-        else
-          python3.pkgs.unicorn;
+      # Fix psutil on darwin
+      psutil = super.psutil.overridePythonAttrs (old: pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
+        NIX_CFLAGS_COMPILE = "-DkIOMainPortDefault=0";
+        buildInputs = old.buildInputs or [ ]
+          ++ pkgs.lib.optionals pkgs.stdenv.isx86_64 [ pkgs.darwin.apple_sdk.frameworks.CoreFoundation ]
+          ++ [ pkgs.darwin.apple_sdk.frameworks.IOKit ];
+      });
+
+      # Only on github-actions darwin failes with segfault, so disable install tests
+      unicorn = python3.pkgs.unicorn.overridePythonAttrs (old: pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
+        doCheck = false;
+      });
 
       capstone =
         # capstone=5.0.3 build is broken only in darwin :(, soo we use wheel
