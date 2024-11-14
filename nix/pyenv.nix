@@ -27,13 +27,6 @@ pkgs.poetry2nix.mkPoetryEnv {
         buildInputs = (old.buildInputs or [ ]) ++ [ super.poetry-core ];
       });
 
-      psutil =
-        # fix only required apple x86_64
-        if pkgs.stdenv.isDarwin && pkgs.stdenv.isx86_64 then
-            python3.pkgs.psutil
-        else
-            super.psutil;
-
       unicorn = python3.pkgs.unicorn.overridePythonAttrs (old: {
         doCheck = false;
       });
