@@ -29,7 +29,7 @@ pkgs.poetry2nix.mkPoetryEnv {
 
       psutil =
         # fix only required apple x86_64
-        if stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isx86_64 then
+        if pkgs.stdenv.isDarwin && pkgs.stdenv.isx86_64 then
             python3.pkgs.psutil
         else
             super.psutil;
