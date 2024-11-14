@@ -8,7 +8,7 @@
   ...
 }:
 pkgs.poetry2nix.mkPoetryEnv {
-  groups = lib.optionals isDev [ "dev" ] ++ lib.optionals isLLDB [ "lldb" ];
+  groups = [ "main" ] ++ lib.optionals isDev [ "dev" ] ++ lib.optionals isLLDB [ "lldb" ];
   checkGroups = lib.optionals isDev [ "dev" ] ++ lib.optionals isLLDB [ "lldb" ];
   projectDir = inputs.pwndbg;
   python = python3;
@@ -27,9 +27,14 @@ pkgs.poetry2nix.mkPoetryEnv {
         buildInputs = (old.buildInputs or [ ]) ++ [ super.poetry-core ];
       });
 
-      unicorn = python3.pkgs.unicorn.overridePythonAttrs (old: {
-        doCheck = false;
-      });
+      unicorn =
+        # Only on github-actions darwin failes with segfault, so disable install tests
+        if pkgs.stdenv.isDarwin then
+          python3.pkgs.unicorn.overridePythonAttrs (old: {
+            doCheck = false;
+          })
+        else
+          python3.pkgs.unicorn;
 
       capstone =
         # capstone=5.0.3 build is broken only in darwin :(, soo we use wheel
