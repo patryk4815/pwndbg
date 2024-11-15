@@ -127,6 +127,8 @@ let
         pwndbgVenv = pyEnv;
         python3 = python3;
         gdb = gdb;
+        lldb = lldb;
+        isLLDB = isLLDB;
       };
     };
 in

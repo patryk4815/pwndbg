@@ -10,6 +10,9 @@ let
     "armv7l-linux" = "armv7";
 
     "riscv64-linux" = "riscv64";
+
+    "aarch64-darwin" = "arm64";
+    "x86_64-darwin" = "amd64";
   };
 
   buildPackagePFPM =
