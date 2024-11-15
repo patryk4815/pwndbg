@@ -11,8 +11,8 @@ let
 
     "riscv64-linux" = "riscv64";
 
-    "aarch64-darwin" = "arm64";
-    "x86_64-darwin" = "amd64";
+    "aarch64-darwin" = "macos_arm64";
+    "x86_64-darwin" = "macos_amd64";
   };
 
   buildPackagePFPM =
