@@ -23,7 +23,7 @@ let
     else
       throw "Unsupported platform: only darwin and linux are supported";
 in
-pkgs.runCommand "bundle" {
+pkgs.runCommand "pwndbg-bundler" {
   nativeBuildInputs = deps ++ [
     pkgs.nukeReferences
     pkgs.python3

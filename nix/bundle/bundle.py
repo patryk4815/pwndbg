@@ -9,12 +9,22 @@ from pathlib import Path
 
 def check_file_type(file_path: Path) -> str | None:
     with open(str(file_path), 'rb') as f:
-        magic = f.read(4)
+        header = f.read(4)
 
-    if magic.startswith(b'\x7fELF'):
+    if header == b'\x7fELF':
         return "ELF"
-    elif magic in {b'\xfe\xed\xfa\xce', b'\xfe\xed\xfa\xcf', b'\xca\xfe\xba\xbe', b'\xcb\xfe\xba\xbe'}:
-        return "Mach-O"
+    elif header == b'\xfe\xed\xfa\xce':
+        return "Mach-O 32-bit (Little Endian)"
+    elif header == b'\xfe\xed\xfa\xcf':
+        return "Mach-O 64-bit (Little Endian)"
+    elif header == b'\xce\xfa\xed\xfe':
+        return "Mach-O 32-bit (Big Endian)"
+    elif header == b'\xcf\xfa\xed\xfe':
+        return "Mach-O 64-bit (Big Endian)"
+    elif header == b'\xca\xfe\xba\xbe':
+        return "Mach-O Fat Binary (Universal, Little Endian)"
+    elif header == b'\xbe\xba\xfe\xca':
+        return "Mach-O Fat Binary (Universal, Big Endian)"
     else:
         return None
 
@@ -276,7 +286,7 @@ def copy_with_symlink(src_path: Path, dst_dir: Path) -> Path | None:
         return new_file
 
 
-def bundle_library(binary_path: Path, root_dst: Path, *, is_exe: bool):
+def bundle_library(binary_path: Path, root_dst: Path, *, is_exe: bool, dst_path: Path=None):
     lib_dir = root_dst / 'lib'
     exe_dir = root_dst / 'exe'
     exe_dir.mkdir(parents=True, exist_ok=True)
@@ -285,6 +295,11 @@ def bundle_library(binary_path: Path, root_dst: Path, *, is_exe: bool):
     if not binary_path.is_relative_to(root_dst):
         # coping required, because src-binary and dst-binary are in different roots
         binary_path = copy_with_symlink(binary_path, exe_dir if is_exe else lib_dir)
+
+        # Move file to another place
+        if is_exe and dst_path:
+            shutil.move(binary_path, dst_path)
+            binary_path = dst_path
 
     # Store all needed libs into {root}/lib/*
     for src_lib_path in iter_deps_recursive(binary_path):
@@ -347,7 +362,7 @@ def main():
             bundle_python_venv(src_path, dst_path, out)
         else:
             if check_file_type(src_path):
-                bundle_library(src_path, out, is_exe=True)
+                bundle_library(src_path, out, is_exe=True, dst_path=dst_path)
             else:
                 dst_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy(src_path, dst_path, follow_symlinks=True)
