@@ -31,7 +31,7 @@ def sym_name(address: int) -> str | None:
     # The `symbol_name_at_address` function will dereference the passed in address - avoid negative addresses
     if address < 0:
         return None
-    
+
     import pwndbg
 
     return pwndbg.dbg.selected_inferior().symbol_name_at_address(address)
