@@ -203,6 +203,9 @@ def find(
 
     address = int(address)
 
+    if address < 0:
+        return None
+
     for page in get():
         if address in page:
             return page
@@ -240,6 +243,8 @@ def explore(address_maybe: int) -> pwndbg.lib.memory.Page | None:
 
         Also assumes the entire contiguous section has the same permission.
     """
+    if address_maybe < 0:
+        return None
 
     address_maybe = pwndbg.lib.memory.page_align(address_maybe)
 
