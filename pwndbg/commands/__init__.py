@@ -709,7 +709,6 @@ def load_commands() -> None:
         import pwndbg.commands.onegadget
         import pwndbg.commands.pcplist
         import pwndbg.commands.peda
-        import pwndbg.commands.plist
         import pwndbg.commands.reload
         import pwndbg.commands.rop
         import pwndbg.commands.ropper
@@ -753,6 +752,7 @@ def load_commands() -> None:
     import pwndbg.commands.p2p
     import pwndbg.commands.patch
     import pwndbg.commands.pie
+    import pwndbg.commands.plist
     import pwndbg.commands.probeleak
     import pwndbg.commands.procinfo
     import pwndbg.commands.radare2
