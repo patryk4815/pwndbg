@@ -13,21 +13,10 @@ import gdb
 
 import pwndbg
 import pwndbg.commands
-import pwndbg.gdblib.elf
-import pwndbg.gdblib.symbol
+import pwndbg.dbg
+import pwndbg.aglib.elf
 from pwndbg.commands import CommandCategory
-from pwndbg.dbg import EventType
-
-break_on_first_instruction = False
-
-
-@pwndbg.dbg.event_handler(EventType.START)
-def on_start() -> None:
-    global break_on_first_instruction
-    if break_on_first_instruction:
-        spec = "*%#x" % (int(pwndbg.gdblib.elf.entry()))
-        gdb.Breakpoint(spec, temporary=True)
-        break_on_first_instruction = False
+from pwndbg.dbg import EventType, BreakpointLocation
 
 
 # Starting from 3rd paragraph, the description is
@@ -66,12 +55,11 @@ def start(args=None) -> None:
     symbols = ["main", "_main", "start", "_start", "init", "_init"]
 
     for symbol in symbols:
-        address = pwndbg.gdblib.symbol.address(symbol)
-
+        address = pwndbg.dbg.selected_inferior().symbol_address_from_name(symbol)
         if not address:
             continue
 
-        gdb.Breakpoint(symbol, temporary=True)
+        pwndbg.dbg.selected_inferior().break_at(BreakpointLocation(address), one_shot=True)
         gdb.execute(run, from_tty=False, to_string=True)
         return
 
@@ -110,9 +98,7 @@ parser.add_argument(
 @pwndbg.commands.ArgparsedCommand(parser, category=CommandCategory.START)
 @pwndbg.commands.OnlyWithFile
 def entry(args=[]) -> None:
-    global break_on_first_instruction
-    break_on_first_instruction = True
-    run = "run " + " ".join(map(quote, args))
+    run = "starti " + " ".join(map(quote, args))
     gdb.execute(run, from_tty=False)
 
 
@@ -121,5 +107,7 @@ def entry(args=[]) -> None:
 )
 @pwndbg.commands.OnlyWithFile
 def sstart() -> None:
-    gdb.Breakpoint("__libc_start_main", temporary=True)
+    address = pwndbg.dbg.selected_inferior().symbol_address_from_name("__libc_start_main")
+    pwndbg.dbg.selected_inferior().break_at(BreakpointLocation(address), one_shot=True)
+
     gdb.execute("run")
