@@ -58,7 +58,7 @@ def start(args=None) -> None:
         if not address:
             continue
 
-        pwndbg.dbg.selected_inferior().break_at(BreakpointLocation(address), one_shot=True)
+        gdb.Breakpoint(symbol, temporary=True)
         gdb.execute(run, from_tty=False, to_string=True)
         return
 
@@ -106,7 +106,5 @@ def entry(args=[]) -> None:
 )
 @pwndbg.commands.OnlyWithFile
 def sstart() -> None:
-    address = pwndbg.dbg.selected_inferior().symbol_address_from_name("__libc_start_main")
-    pwndbg.dbg.selected_inferior().break_at(BreakpointLocation(address), one_shot=True)
-
+    gdb.Breakpoint("__libc_start_main", temporary=True)
     gdb.execute("run")
