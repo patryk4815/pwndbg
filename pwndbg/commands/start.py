@@ -12,12 +12,11 @@ from shlex import quote
 import gdb
 
 import pwndbg
+import pwndbg.aglib.elf
 import pwndbg.commands
 import pwndbg.dbg
-import pwndbg.aglib.elf
 from pwndbg.commands import CommandCategory
-from pwndbg.dbg import EventType, BreakpointLocation
-
+from pwndbg.dbg import BreakpointLocation
 
 # Starting from 3rd paragraph, the description is
 # taken from the GDB's `starti` command description
