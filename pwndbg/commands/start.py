@@ -16,7 +16,6 @@ import pwndbg.aglib.elf
 import pwndbg.commands
 import pwndbg.dbg
 from pwndbg.commands import CommandCategory
-from pwndbg.dbg import BreakpointLocation
 
 # Starting from 3rd paragraph, the description is
 # taken from the GDB's `starti` command description
