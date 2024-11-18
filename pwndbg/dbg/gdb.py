@@ -910,6 +910,13 @@ class GDBType(pwndbg.dbg_mod.Type):
     def __init__(self, inner: gdb.Type):
         self.inner = inner
 
+    @override
+    def __eq__(self, rhs: object) -> bool:
+        assert isinstance(rhs, GDBType), "tried to compare GDBType to other type"
+        other: GDBType = rhs
+
+        return self.inner == other.inner
+
     @property
     @override
     def sizeof(self) -> int:
@@ -997,7 +1004,17 @@ class GDBValue(pwndbg.dbg_mod.Value):
 
     @override
     def string(self) -> str:
-        return self.inner.string()
+        try:
+            return self.inner.string()
+        except gdb.error as e:
+            raise pwndbg.dbg_mod.Error(e)
+
+    @override
+    def value_to_human_readable(self) -> str:
+        try:
+            return str(self.inner)
+        except gdb.error as e:
+            raise pwndbg.dbg_mod.Error(e)
 
     @override
     def fetch_lazy(self) -> None:

@@ -319,6 +319,13 @@ class LLDBType(pwndbg.dbg_mod.Type):
     def __init__(self, inner: lldb.SBType):
         self.inner = inner
 
+    @override
+    def __eq__(self, rhs: object) -> bool:
+        assert isinstance(rhs, LLDBType), "tried to compare LLDBType to other type"
+        other: LLDBType = rhs
+
+        return self.inner == other.inner
+
     @property
     @override
     def sizeof(self) -> int:
@@ -479,6 +486,10 @@ class LLDBValue(pwndbg.dbg_mod.Value):
             buf *= 2
 
         return last_str
+
+    @override
+    def value_to_human_readable(self) -> str:
+        return str(self.inner)
 
     @override
     def fetch_lazy(self) -> None:
