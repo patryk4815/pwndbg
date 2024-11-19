@@ -8,13 +8,17 @@
   lldb ? pkgs.lldb_19,
 }:
 let
-  python3 = (pkgs.python313.overrideAttrs (old: {
-    configureFlags = old.configureFlags ++ [ "--enable-experimental-jit=yes" ];
-  })).override {
-    stdenv = pkgs.llvmPackages_19.stdenv;
-  };
+#  python3 = (pkgs.python313.overrideAttrs (old: {
+#    configureFlags = old.configureFlags ++ [ "--enable-experimental-jit=yes" ];
+#  })).override {
+#    stdenv = pkgs.llvmPackages_19.stdenv;
+#  };
+#  gdb = pkgs.gdb.override {
+#    python3 = python3;
+#  };
+  python3 = pkgs.python313;
   gdb = pkgs.gdb.override {
-    python3 = python3;
+    python3 = pkgs.python313;
   };
 
   binPath = pkgs.lib.makeBinPath (
