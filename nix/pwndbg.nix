@@ -8,6 +8,15 @@
   lldb ? pkgs.lldb_19,
 }:
 let
+  python3 = (pkgs.python313.overrideAttrs (old: {
+    configureFlags = old.configureFlags ++ [ "--enable-experimental-jit=yes" ];
+  })).override {
+    stdenv = pkgs.llvmPackages_19.stdenv;
+  };
+  gdb = pkgs.gdb.override {
+    python3 = python3;
+  };
+
   binPath = pkgs.lib.makeBinPath (
     [
       python3.pkgs.pwntools # ref: https://github.com/pwndbg/pwndbg/blob/2023.07.17/pwndbg/wrappers/checksec.py#L8
