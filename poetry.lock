@@ -1347,6 +1347,11 @@ bcrypt = ">=3.2"
 cryptography = ">=3.3"
 pynacl = ">=1.5"
 
+[package.extras]
+all = ["gssapi (>=1.4.1)", "invoke (>=2.0)", "pyasn1 (>=0.1.7)", "pywin32 (>=2.1.8)"]
+gssapi = ["gssapi (>=1.4.1)", "pyasn1 (>=0.1.7)", "pywin32 (>=2.1.8)"]
+invoke = ["invoke (>=2.0)"]
+
 [[package]]
 name = "parso"
 version = "0.8.4"
@@ -2509,4 +2514,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "11d26a97deab1bd749e02563b13119bad0d98da8b4f55e9ef7dd270263eb6887"
+content-hash = "d844d63bcaa507158a2629b3c3a04a1ec754fd412b77a7188f69b5c5cacf1f36"

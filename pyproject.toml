@@ -173,6 +173,7 @@ typing-extensions = "^4.12.0"
 unicorn = "^2.1.1"
 requests = "^2.32.3"
 pt = {git = "https://github.com/martinradev/gdb-pt-dump", rev = "50227bda0b6332e94027f811a15879588de6d5cb"}
+paramiko = {version = "^3.5.0", extras = []}
 
 [tool.poetry.group.lldb]
 optional = true
