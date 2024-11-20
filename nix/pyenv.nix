@@ -12,7 +12,7 @@ pkgs.poetry2nix.mkPoetryEnv {
   checkGroups = lib.optionals isDev [ "dev" ] ++ lib.optionals isLLDB [ "lldb" ];
   projectDir = inputs.pwndbg;
   python = python3;
-  extras = [];
+  extras = [ ];
   overrides = pkgs.poetry2nix.overrides.withDefaults (
     self: super: {
       pip = python3.pkgs.pip; # fix infinite loop in nix, look here: https://github.com/nix-community/poetry2nix/issues/1184#issuecomment-1644878841
