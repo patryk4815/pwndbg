@@ -191,7 +191,7 @@ mypy = "^1.10.0"
 # Newer versions of pytest break CI on GitHub
 pytest = "8.0.2"
 pytest-cov = "^4.1.0"
-rich = "^13.7.1"
+rich = "^13.9.4"
 ruff = "^0.4.1"
 sortedcontainers-stubs = "^2.4.2"
 testresources = "^2.0.1"
