@@ -1347,11 +1347,6 @@ bcrypt = ">=3.2"
 cryptography = ">=3.3"
 pynacl = ">=1.5"
 
-[package.extras]
-all = ["gssapi (>=1.4.1)", "invoke (>=2.0)", "pyasn1 (>=0.1.7)", "pywin32 (>=2.1.8)"]
-gssapi = ["gssapi (>=1.4.1)", "pyasn1 (>=0.1.7)", "pywin32 (>=2.1.8)"]
-invoke = ["invoke (>=2.0)"]
-
 [[package]]
 name = "parso"
 version = "0.8.4"
