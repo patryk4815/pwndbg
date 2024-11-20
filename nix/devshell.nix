@@ -10,6 +10,7 @@
     in
     import nixpkgs { overlays = [ ]; },
   python3 ? pkgs.python3,
+  gdb ? pkgs.gdb,
   inputs ? null,
   isLLDB ? false,
   ...
@@ -60,7 +61,6 @@ in
           nasm
           gcc
           curl
-          gdb
           parallel
           qemu
           netcat-openbsd
@@ -75,10 +75,12 @@ in
           ;
       }
       ++ [
+        gdb
+
         jemalloc-static
         # from qemu-tests.sh
         (pkgs.writeShellScriptBin "gdb-multiarch" ''
-          exec ${lib.getBin pkgs.gdb}/bin/gdb "$@"
+          exec ${lib.getBin gdb}/bin/gdb "$@"
         '')
         pkgs.pkgsCross.aarch64-multiplatform.buildPackages.binutils
         pkgs.pkgsCross.riscv64.buildPackages.binutils

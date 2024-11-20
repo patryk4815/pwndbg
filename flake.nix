@@ -104,7 +104,8 @@
         system:
         import ./nix/devshell.nix {
           pkgs = pkgsBySystem.${system};
-          python3 = pkgsBySystem.${system}.python3;
+          python3 = self.packages.${system}.pwndbg-dev.meta.python3;
+          gdb = self.packages.${system}.pwndbg-dev.meta.gdb;
           inputs.pwndbg = self;
           isLLDB = true;
         }
