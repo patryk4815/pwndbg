@@ -84,6 +84,11 @@ def _is_safe_event():
     except gdb.error as e:
         if "Remote 'g' packet reply is too long" in str(e):
             return False
+    try:
+        gdb.newest_frame()
+    except gdb.error as e:
+        if "Selected thread is running" in str(e):
+            return False
     return True
 
 
@@ -104,6 +109,7 @@ class _DelayedEventHandler:
             print(f' gdb.selected_frame(): {repr(gdb.selected_frame())}')
         except Exception as e:
             print(f' gdb.selected_frame(): {str(e)}')
+
         self.func()
 
 
