@@ -102,7 +102,7 @@ class _DelayedEventHandler:
         self.func()
 
 
-def wrap_safe_event_handler(func: Callable[[], T]) -> Callable[[], T]:
+def wrap_safe_event_handler(func: Callable[P, T]) -> Callable[P, T]:
     """
     Wraps an event handler to ensure it is only executed when the event is safe.
     Invalid events are queued and executed later when safe.
@@ -121,15 +121,15 @@ def wrap_safe_event_handler(func: Callable[[], T]) -> Callable[[], T]:
             queued_invalid_events.popleft()()
 
     @wraps(func)
-    def _inner():
+    def _inner(*a: P.args, **kw: P.kwargs):
         if not _is_safe_event():
-            queued_invalid_events.append(func)
+            queued_invalid_events.append(lambda: func(a, kw))
             # gdb.post_event(_DelayedEventHandler(_loop_check))
         else:
             while queued_invalid_events:
-                print(f'EXECUTE FROM QUEUE : {queued_invalid_events}')
+                print(f"EXECUTE FROM QUEUE : {queued_invalid_events}")
                 queued_invalid_events.popleft()()
-            func()
+            func(*a, **kw)
 
     return _inner
 
