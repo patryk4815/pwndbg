@@ -222,6 +222,10 @@ def connect(
     registered[event_handler].setdefault(priority, []).append(caller)
     if event_handler not in connected:
         handle = partial(invoke_event, event_handler)
+
+        if event_handler == gdb.events.new_objfile:
+            handle = wrap_safe_event_handler(handle)
+
         event_handler.connect(handle)
         connected[event_handler] = handle
     return func
@@ -236,7 +240,7 @@ def cont(func: Callable[[], T], **kwargs: Any) -> Callable[[], T]:
 
 
 def new_objfile(func: Callable[[], T], **kwargs: Any) -> Callable[[], T]:
-    return connect(wrap_safe_event_handler(func), gdb.events.new_objfile, "obj", **kwargs)
+    return connect(func, gdb.events.new_objfile, "obj", **kwargs)
 
 
 def stop(func: Callable[[], T], **kwargs: Any) -> Callable[[], T]:
