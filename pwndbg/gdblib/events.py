@@ -96,6 +96,14 @@ class _DelayedEventHandler:
             print(f'XX thread: {gdb.selected_thread()}, {gdb.selected_thread().ptid}, {gdb.selected_thread().num}')
         except:
             print(f'XX thread error')
+        try:
+            print(f' gdb.newest_frame(): {repr(gdb.newest_frame())}')
+        except:
+            pass
+        try:
+            print(f' gdb.selected_frame(): {repr(gdb.selected_frame())}')
+        except:
+            pass
         self.func()
 
 
