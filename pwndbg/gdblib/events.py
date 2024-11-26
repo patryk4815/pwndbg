@@ -98,12 +98,12 @@ class _DelayedEventHandler:
             print(f'XX thread error')
         try:
             print(f' gdb.newest_frame(): {repr(gdb.newest_frame())}')
-        except:
-            pass
+        except Exception as e:
+            print(f' gdb.newest_frame(): {str(e)}')
         try:
             print(f' gdb.selected_frame(): {repr(gdb.selected_frame())}')
-        except:
-            pass
+        except Exception as e:
+            print(f' gdb.selected_frame(): {str(e)}')
         self.func()
 
 
