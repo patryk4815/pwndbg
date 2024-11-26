@@ -99,23 +99,10 @@ class _DelayedEventHandler:
         self.func = func
 
     def __call__(self):
-        try:
-            print(f'XX thread: {gdb.selected_thread()}, {gdb.selected_thread().ptid}, {gdb.selected_thread().num}')
-        except:
-            print(f'XX thread error')
-        try:
-            print(f' gdb.newest_frame(): {repr(gdb.newest_frame())}')
-        except Exception as e:
-            print(f' gdb.newest_frame(): {str(e)}')
-        try:
-            print(f' gdb.selected_frame(): {repr(gdb.selected_frame())}')
-        except Exception as e:
-            print(f' gdb.selected_frame(): {str(e)}')
-
         self.func()
 
 
-def wrap_safe_event_handler(func: Callable[[], T]) -> Callable[[], T]:
+def wrap_safe_event_handler(func: Callable[[], T], is_repeated: bool=False) -> Callable[[], T]:
     """
     Wraps an event handler to ensure it is only executed when the event is safe.
     Invalid events are queued and executed later when safe.
@@ -125,17 +112,31 @@ def wrap_safe_event_handler(func: Callable[[], T]) -> Callable[[], T]:
 
     Workaround to fix bug in gdbserver: https://github.com/pwndbg/pwndbg/issues/2576
     """
+    queued_invalid_events: Deque[Callable[[], T]] = deque()
 
     @wraps(func)
     def _inner():
         if not _is_safe_event():
-            try:
-                print(f'thread2: {gdb.selected_thread()}, {gdb.selected_thread().ptid}, {gdb.selected_thread().num}')
-            except:
-                print(f'thread2 error')
+            if not is_repeated:
+                queued_invalid_events.append(func)
 
-            gdb.post_event(_DelayedEventHandler(wrap_safe_event_handler(func)))
+            gdb.post_event(_DelayedEventHandler(wrap_safe_event_handler(func, is_repeated=True)))
         else:
+            try:
+                print(f'XX thread: {gdb.selected_thread()}, {gdb.selected_thread().ptid}, {gdb.selected_thread().num}')
+            except:
+                print(f'XX thread error')
+            try:
+                print(f' gdb.newest_frame(): {repr(gdb.newest_frame())}')
+            except Exception as e:
+                print(f' gdb.newest_frame(): {str(e)}')
+            try:
+                print(f' gdb.selected_frame(): {repr(gdb.selected_frame())}')
+            except Exception as e:
+                print(f' gdb.selected_frame(): {str(e)}')
+
+            while queued_invalid_events:
+                queued_invalid_events.popleft()()
             func()
 
     return _inner
