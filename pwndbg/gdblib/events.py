@@ -92,6 +92,10 @@ class _DelayedEventHandler:
         self.func = func
 
     def __call__(self):
+        try:
+            print(f'XX thread: {gdb.selected_thread()}, {gdb.selected_thread().ptid}, {gdb.selected_thread().num}')
+        except:
+            print(f'XX thread error')
         self.func()
 
 
