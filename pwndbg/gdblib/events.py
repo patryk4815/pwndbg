@@ -77,17 +77,18 @@ class StartEvent:
 gdb.events.start = StartEvent()
 
 
-def _is_safe_event():
-    # Workaround to fix bug in gdbserver: https://github.com/pwndbg/pwndbg/issues/2576
+def _is_safe_event_packet():
     try:
         gdb.selected_frame()
-        return True
     except gdb.error as e:
         if "Remote 'g' packet reply is too long" in str(e):
             return False
+    return True
+
+
+def _is_safe_event_thread():
     try:
         gdb.newest_frame()
-        return True
     except gdb.error as e:
         if "Selected thread is running" in str(e):
             return False
@@ -102,7 +103,7 @@ class _DelayedEventHandler:
         self.func()
 
 
-def wrap_safe_event_handler(func: Callable[P, T]) -> Callable[P, T]:
+def wrap_safe_event_handler(event_handler: Callable[P, T]) -> Callable[P, T]:
     """
     Wraps an event handler to ensure it is only executed when the event is safe.
     Invalid events are queued and executed later when safe.
@@ -112,32 +113,31 @@ def wrap_safe_event_handler(func: Callable[P, T]) -> Callable[P, T]:
 
     Workaround to fix bug in gdbserver: https://github.com/pwndbg/pwndbg/issues/2576
     """
-    queued_invalid_events: Deque[Callable[[], Callable[P, T]]] = deque()
+    queued_invalid_events: Deque[Callable[..., Any]] = deque()
 
     def _loop_until_thread_ok():
         if not queued_invalid_events:
             return
 
-        if not _is_safe_event():
+        if not _is_safe_event_thread():
             gdb.post_event(_DelayedEventHandler(_loop_until_thread_ok))
             return
 
         while queued_invalid_events:
-            print(f"EXECUTE FROM UNTIL : {queued_invalid_events}")
             queued_invalid_events.popleft()()
 
-    @wraps(func)
-    def _inner(*a: P.args, **kw: P.kwargs):
-        if not _is_safe_event():
-            queued_invalid_events.append(lambda: func(*a, **kw))
+    @wraps(event_handler)
+    def _inner_handler(*a: P.args, **kw: P.kwargs):
+        if not _is_safe_event_packet():
+            queued_invalid_events.append(lambda: event_handler(*a, **kw))
+
             gdb.post_event(_DelayedEventHandler(_loop_until_thread_ok))
         else:
             while queued_invalid_events:
-                print(f"EXECUTE FROM QUEUE : {queued_invalid_events}")
                 queued_invalid_events.popleft()()
-            func(*a, **kw)
+            event_handler(*a, **kw)
 
-    return _inner
+    return _inner_handler
 
 
 class HandlerPriority(Enum):
