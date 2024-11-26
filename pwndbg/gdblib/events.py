@@ -81,11 +81,13 @@ def _is_safe_event():
     # Workaround to fix bug in gdbserver: https://github.com/pwndbg/pwndbg/issues/2576
     try:
         gdb.selected_frame()
+        return True
     except gdb.error as e:
         if "Remote 'g' packet reply is too long" in str(e):
             return False
     try:
         gdb.newest_frame()
+        return True
     except gdb.error as e:
         if "Selected thread is running" in str(e):
             return False
