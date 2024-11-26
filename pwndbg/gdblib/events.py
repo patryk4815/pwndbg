@@ -122,9 +122,9 @@ def wrap_safe_event_handler(func: Callable[[], T]) -> Callable[[], T]:
     def _inner():
         if not _is_safe_event():
             try:
-                print(f'thread: {gdb.selected_thread()}, {gdb.selected_thread().ptid}, {gdb.selected_thread().num}')
+                print(f'thread2: {gdb.selected_thread()}, {gdb.selected_thread().ptid}, {gdb.selected_thread().num}')
             except:
-                print(f'thread error')
+                print(f'thread2 error')
 
             gdb.post_event(_DelayedEventHandler(wrap_safe_event_handler(func)))
         else:
