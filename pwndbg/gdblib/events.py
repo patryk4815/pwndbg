@@ -198,6 +198,8 @@ def connect(
             sys.stdout.write(f"{name!r} {func.__module__}.{func.__name__} {a!r}\n")
 
         if a and isinstance(a[0], gdb.NewObjFileEvent):
+            print(f'gdb.NewObjFileEvent: {a[0].__dict__}')
+
             objfile = a[0].new_objfile
             handler = f"{func.__module__}.{func.__name__}"
             path = objfile.filename
