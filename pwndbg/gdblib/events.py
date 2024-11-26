@@ -102,7 +102,7 @@ class _DelayedEventHandler:
         self.func()
 
 
-def wrap_safe_event_handler(func: Callable[[], T], is_repeated: bool=False) -> Callable[[], T]:
+def wrap_safe_event_handler(func: Callable[[], T]) -> Callable[[], T]:
     """
     Wraps an event handler to ensure it is only executed when the event is safe.
     Invalid events are queued and executed later when safe.
@@ -114,28 +114,20 @@ def wrap_safe_event_handler(func: Callable[[], T], is_repeated: bool=False) -> C
     """
     queued_invalid_events: Deque[Callable[[], T]] = deque()
 
+    def _loop_check():
+        if not queued_invalid_events:
+            return
+        while queued_invalid_events:
+            queued_invalid_events.popleft()()
+
     @wraps(func)
     def _inner():
         if not _is_safe_event():
-            if not is_repeated:
-                queued_invalid_events.append(func)
-
-            gdb.post_event(_DelayedEventHandler(wrap_safe_event_handler(func, is_repeated=True)))
+            queued_invalid_events.append(func)
+            # gdb.post_event(_DelayedEventHandler(_loop_check))
         else:
-            try:
-                print(f'XX thread: {gdb.selected_thread()}, {gdb.selected_thread().ptid}, {gdb.selected_thread().num}')
-            except:
-                print(f'XX thread error')
-            try:
-                print(f' gdb.newest_frame(): {repr(gdb.newest_frame())}')
-            except Exception as e:
-                print(f' gdb.newest_frame(): {str(e)}')
-            try:
-                print(f' gdb.selected_frame(): {repr(gdb.selected_frame())}')
-            except Exception as e:
-                print(f' gdb.selected_frame(): {str(e)}')
-
             while queued_invalid_events:
+                print(f'EXECUTE FROM QUEUE : {queued_invalid_events}')
                 queued_invalid_events.popleft()()
             func()
 
