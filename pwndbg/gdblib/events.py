@@ -105,15 +105,17 @@ def wrap_safe_event_handler(func: Callable[[], T]) -> Callable[[], T]:
 
     Workaround to fix bug in gdbserver: https://github.com/pwndbg/pwndbg/issues/2576
     """
-    queued_invalid_events: Deque[Callable[[], T]] = deque()
 
     @wraps(func)
     def _inner():
         if not _is_safe_event():
-            queued_invalid_events.append(func)
+            try:
+                print(f'thread: {gdb.selected_thread()}, {gdb.selected_thread().ptid}, {gdb.selected_thread().num}')
+            except:
+                print(f'thread error')
+
+            gdb.post_event(_DelayedEventHandler(func))
         else:
-            while queued_invalid_events:
-                queued_invalid_events.popleft()()
             func()
 
     return _inner
