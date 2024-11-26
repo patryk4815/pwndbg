@@ -126,7 +126,7 @@ def wrap_safe_event_handler(func: Callable[[], T]) -> Callable[[], T]:
             except:
                 print(f'thread error')
 
-            gdb.post_event(_DelayedEventHandler(func))
+            gdb.post_event(_DelayedEventHandler(wrap_safe_event_handler(func)))
         else:
             func()
 
