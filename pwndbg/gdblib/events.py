@@ -114,17 +114,23 @@ def wrap_safe_event_handler(func: Callable[P, T]) -> Callable[P, T]:
     """
     queued_invalid_events: Deque[Callable[[], Callable[P, T]]] = deque()
 
-    def _loop_check():
+    def _loop_until_thread_ok():
         if not queued_invalid_events:
             return
+
+        if not _is_safe_event():
+            gdb.post_event(_DelayedEventHandler(_loop_until_thread_ok))
+            return
+
         while queued_invalid_events:
+            print(f"EXECUTE FROM UNTIL : {queued_invalid_events}")
             queued_invalid_events.popleft()()
 
     @wraps(func)
     def _inner(*a: P.args, **kw: P.kwargs):
         if not _is_safe_event():
             queued_invalid_events.append(lambda: func(*a, **kw))
-            # gdb.post_event(_DelayedEventHandler(_loop_check))
+            gdb.post_event(_DelayedEventHandler(_loop_until_thread_ok))
         else:
             while queued_invalid_events:
                 print(f"EXECUTE FROM QUEUE : {queued_invalid_events}")
@@ -198,7 +204,7 @@ def connect(
             sys.stdout.write(f"{name!r} {func.__module__}.{func.__name__} {a!r}\n")
 
         if a and isinstance(a[0], gdb.NewObjFileEvent):
-            print(f'gdb.NewObjFileEvent: {a[0].__dict__}')
+            print(f"gdb.NewObjFileEvent: {a[0].__dict__}")
 
             objfile = a[0].new_objfile
             handler = f"{func.__module__}.{func.__name__}"
