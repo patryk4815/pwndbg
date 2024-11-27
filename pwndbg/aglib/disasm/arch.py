@@ -99,7 +99,7 @@ def syntax_highlight(ins):
     return H.syntax_highlight(ins, filename=".asm")
 
 
-DEBUG_ENHANCEMENT = False
+DEBUG_ENHANCEMENT = True
 # DEBUG_ENHANCEMENT = True
 
 groups = {v: k for k, v in globals().items() if k.startswith("CS_GRP_")}
@@ -406,6 +406,8 @@ class DisassemblyAssistant:
         if emu:
             # Will read the value of register from the emulator
             # Be concious about calling this before/after stepping the emulator
+            if DEBUG_ENHANCEMENT:
+                print(f"Register in emulation GET {regname}")
             value = emu.read_register(regname)
             if DEBUG_ENHANCEMENT:
                 print(f"Register in emulation returned {regname}={hex(value)}")
