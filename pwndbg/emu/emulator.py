@@ -286,6 +286,9 @@ class Emulator:
         reg = self.get_reg_enum(name)
 
         if reg:
+            if name.upper() == 'XZR':
+                return 0
+
             return self.uc.reg_read(reg)
 
         return None
