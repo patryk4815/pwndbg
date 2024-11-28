@@ -209,13 +209,13 @@ class DisassemblyAssistant:
 
         # Ensure emulator's program counter is at the correct location.
         # This occurs very rarely - observed sometimes when the remote is stalling, ctrl-c, and for some reason emulator returns PC=0.
-        if emu:
-            if emu.pc != instruction.address:
-                if DEBUG_ENHANCEMENT:
-                    print(
-                        f"Program counter and emu.pc do not line up: {hex(pwndbg.aglib.regs.pc)=} {hex(emu.pc)=}"
-                    )
-                emu = jump_emu = None
+        # if emu:
+        #     if emu.pc != instruction.address:
+        #         if DEBUG_ENHANCEMENT:
+        #             print(
+        #                 f"Program counter and emu.pc do not line up: {hex(pwndbg.aglib.regs.pc)=} {hex(emu.pc)=}"
+        #             )
+        #         emu = jump_emu = None
 
         enhancer: DisassemblyAssistant = DisassemblyAssistant.assistants.get(
             pwndbg.aglib.arch.current, generic_assistant
