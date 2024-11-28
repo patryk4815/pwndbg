@@ -221,7 +221,7 @@ class Emulator:
         self.uc_mode = self.get_uc_mode()
         debug(DEBUG_INIT, "# Instantiating Unicorn for %s", self.arch)
         debug(DEBUG_INIT, "uc = U.Uc(%r, %r)", (arch_to_UC[self.arch], self.uc_mode))
-        self.uc =(arch_to_UC[self.arch], self.uc_mode)
+        self.uc = U.Uc(arch_to_UC[self.arch], self.uc_mode)
         # self.uc.ctl(U.UC_CTL_TCG_BUFFER_SIZE, U.UC_CTL_IO_WRITE, ctypes.c_uint32(50*1024*1024))
 
         self.regs: pwndbg.lib.regs.RegisterSet = pwndbg.aglib.regs.current
