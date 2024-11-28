@@ -221,8 +221,8 @@ class Emulator:
         self.uc_mode = self.get_uc_mode()
         debug(DEBUG_INIT, "# Instantiating Unicorn for %s", self.arch)
         debug(DEBUG_INIT, "uc = U.Uc(%r, %r)", (arch_to_UC[self.arch], self.uc_mode))
-        self.uc = U.Uc(arch_to_UC[self.arch], self.uc_mode)
-        self.uc.ctl(U.UC_CTL_TCG_BUFFER_SIZE, U.UC_CTL_IO_WRITE, ctypes.c_uint32(50*1024*1024))
+        self.uc =(arch_to_UC[self.arch], self.uc_mode)
+        # self.uc.ctl(U.UC_CTL_TCG_BUFFER_SIZE, U.UC_CTL_IO_WRITE, ctypes.c_uint32(50*1024*1024))
 
         self.regs: pwndbg.lib.regs.RegisterSet = pwndbg.aglib.regs.current
 
@@ -279,6 +279,11 @@ class Emulator:
         # Instruction tracing
         if DEBUG & DEBUG_TRACE:
             self.hook_add(U.UC_HOOK_CODE, self.trace_hook)
+
+    def get_buf_size(self):
+        carg = ctypes.c_uint32()
+        self.uc.ctl(U.UC_CTL_TCG_BUFFER_SIZE, U.UC_CTL_IO_READ, ctypes.byref(carg))
+        return carg.value
 
     @property
     def last_step_succeeded(self) -> bool:
@@ -733,6 +738,7 @@ class Emulator:
             self.hook_del(ident)
 
     def mem_read(self, *a, **kw):
+        print(f'######## SIZE: {self.get_buf_size()/1024/1024}')
         debug(DEBUG_MEM_READ, "uc.mem_read(*%r, **%r)", (a, kw))
         return self.uc.mem_read(*a, **kw)
 

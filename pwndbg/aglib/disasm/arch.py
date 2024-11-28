@@ -396,6 +396,9 @@ class DisassemblyAssistant:
 
         operand_id is the ID internal to Capstone
         """
+        if emu:
+            print(f'######## SIZE2: {emu.get_buf_size() / 1024 / 1024}')
+
         regname: str = instruction.cs_insn.reg_name(operand_id)
         return self._read_register_name(instruction, regname, emu)
 
@@ -479,6 +482,8 @@ class DisassemblyAssistant:
 
         The list that the function returns is guaranteed have len >= 1
         """
+        if emu:
+            print(f'######## SIZE3: {emu.get_buf_size() / 1024 / 1024}')
 
         can_read_process_state = self.can_reason_about_process_state(instruction)
 
