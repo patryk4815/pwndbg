@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 
+import pwndbg.emu.emulator
 import pwndbg.aglib.next
 import pwndbg.commands
 from pwndbg.commands import CommandCategory
@@ -133,10 +134,12 @@ async def _nextsyscall(ec: pwndbg.dbg_mod.ExecutionController):
     """
     Execution controller for the `nextsyscall` command
     """
+    emu = pwndbg.emu.emulator.Emulator()
+
     while (
         pwndbg.aglib.proc.alive
-        and not (await pwndbg.aglib.next.break_next_interrupt(ec))
-        and (await pwndbg.aglib.next.break_next_branch(ec))
+        and not (await pwndbg.aglib.next.break_next_interrupt(ec, emu=emu))
+        and (await pwndbg.aglib.next.break_next_branch(ec, emu=emu))
     ):
         continue
 

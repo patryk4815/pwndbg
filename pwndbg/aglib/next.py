@@ -19,7 +19,7 @@ from pwndbg.dbg import BreakpointLocation
 interrupts = {capstone.CS_GRP_INT}
 
 
-def next_int(address=None):
+def next_int(address=None, emu=None):
     """
     If there is a syscall in the current basic black,
     return the instruction of the one closest to $PC.
@@ -27,34 +27,34 @@ def next_int(address=None):
     Otherwise, return None.
     """
     if address is None:
-        ins = pwndbg.aglib.disasm.one(pwndbg.aglib.regs.pc)
+        ins = pwndbg.aglib.disasm.one(pwndbg.aglib.regs.pc, emu=emu)
         if not ins:
             return None
         address = ins.next
 
-    ins = pwndbg.aglib.disasm.one(address)
+    ins = pwndbg.aglib.disasm.one(address, emu=emu)
     while ins:
         if ins.jump_like:
             return None
         elif ins.groups & interrupts:
             return ins
-        ins = pwndbg.aglib.disasm.one(ins.next)
+        ins = pwndbg.aglib.disasm.one(ins.next, emu=emu)
 
     return None
 
 
-def next_branch(address=None):
+def next_branch(address=None, emu=None):
     if address is None:
-        ins = pwndbg.aglib.disasm.one(pwndbg.aglib.regs.pc)
+        ins = pwndbg.aglib.disasm.one(pwndbg.aglib.regs.pc, emu=emu)
         if not ins:
             return None
         address = ins.next
 
-    ins = pwndbg.aglib.disasm.one(address)
+    ins = pwndbg.aglib.disasm.one(address, emu=emu)
     while ins:
         if ins.jump_like:
             return ins
-        ins = pwndbg.aglib.disasm.one(ins.next)
+        ins = pwndbg.aglib.disasm.one(ins.next, emu=emu)
 
     return None
 
@@ -101,8 +101,8 @@ def next_matching_until_branch(address=None, mnemonic=None, op_str=None):
     return None
 
 
-async def break_next_branch(ec: pwndbg.dbg_mod.ExecutionController, address=None):
-    ins = next_branch(address)
+async def break_next_branch(ec: pwndbg.dbg_mod.ExecutionController, address=None, emu=None):
+    ins = next_branch(address, emu=emu)
 
     proc = pwndbg.dbg.selected_inferior()
     if ins:
@@ -112,8 +112,8 @@ async def break_next_branch(ec: pwndbg.dbg_mod.ExecutionController, address=None
         return ins
 
 
-async def break_next_interrupt(ec: pwndbg.dbg_mod.ExecutionController, address=None):
-    ins = next_int(address)
+async def break_next_interrupt(ec: pwndbg.dbg_mod.ExecutionController, address=None, emu=None):
+    ins = next_int(address, emu=emu)
 
     proc = pwndbg.dbg.selected_inferior()
     if ins:

@@ -1003,7 +1003,7 @@ class DisassemblyAssistant:
         if len(instruction.operands) == 2:
             left, right = instruction.operands
             # If we already used emulation, use the result, otherwise take the source operand before_value
-            result = left.after_value or right.before_value
+            result = left.after_value or right.before_value  ## <- bug here?
             if result is not None:
                 TELESCOPE_DEPTH = max(0, int(pwndbg.config.disasm_telescope_depth))
 
