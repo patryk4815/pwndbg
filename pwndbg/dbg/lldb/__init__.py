@@ -1383,7 +1383,7 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         if len(link) == 0:
             return spec.fullpath
 
-        return os.path.normpath(f"{spec.dirname}/{link}")
+        return os.path.normpath(link)
 
     @override
     def module_section_locations(self) -> List[Tuple[int, int, str, str]]:
