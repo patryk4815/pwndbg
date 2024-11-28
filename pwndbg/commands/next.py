@@ -161,11 +161,12 @@ async def _stepsyscall(ec: pwndbg.dbg_mod.ExecutionController):
     """
     Execution controller for the `stepsyscall` command.
     """
+    emu = pwndbg.emu.emulator.Emulator()
 
     while (
         pwndbg.aglib.proc.alive
-        and not (await pwndbg.aglib.next.break_next_interrupt(ec))
-        and (await pwndbg.aglib.next.break_next_branch(ec))
+        and not (await pwndbg.aglib.next.break_next_interrupt(ec, emu=emu))
+        and (await pwndbg.aglib.next.break_next_branch(ec, emu=emu))
     ):
         # Here we are e.g. on a CALL instruction (temporarily breakpointed by `break_next_branch`)
         # We need to step so that we take this branch instead of ignoring it
