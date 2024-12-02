@@ -25,7 +25,7 @@ from typing_extensions import ParamSpec
 
 from pwndbg import config
 
-debug = config.add_param("debug-events", True, "display internal event debugging info")
+debug = config.add_param("debug-events", False, "display internal event debugging info")
 async_workaround_stop_event = config.add_param(
     "async-workaround-stop-event",
     False,
