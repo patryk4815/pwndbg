@@ -209,7 +209,8 @@ def connect(
 
         if event_handler == gdb.events.new_objfile:
             handle = wrap_safe_event_handler(handle)
-        # if event_handler == gdb.events.stop:
+        if event_handler == gdb.events.stop:
+            handle = lambda x: x
         #     handle = wrap_safe_event_handler(handle)
 
         event_handler.connect(handle)
