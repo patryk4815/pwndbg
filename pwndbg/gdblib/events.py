@@ -261,21 +261,16 @@ def log_objfiles(ofile: gdb.NewObjFileEvent | None = None) -> None:
 
 
 gdb.events.new_objfile.connect(log_objfiles)
-import threading
-lock = threading.Lock()
 
 # invoke all registered handlers of a certain event type
 def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
     handlers = registered.get(event)
     if handlers is not None:
-        lock.acquire()
-        try:
-            for prio in HandlerPriority:
-                for f in handlers.get(prio, []):
-                    print('IS_SAFE', str(event), str(f), str(args), _is_safe_event_thread())
+        for prio in HandlerPriority:
+            for f in handlers.get(prio, []):
+                print('IS_SAFE', str(event), str(f), str(args), _is_safe_event_thread())
+                if _is_safe_event_thread():
                     f(*args, **kwargs)
-        finally:
-            lock.release()
 
 def after_reload(start: bool = True) -> None:
     if gdb.selected_inferior().pid:
