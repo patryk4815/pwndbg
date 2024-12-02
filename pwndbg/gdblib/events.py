@@ -272,13 +272,12 @@ def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
         if detect_another_thread_issue:
             print('ANOTHER THREAD WTF?')
             print('IS_SAFE', str(event), str(args), _is_safe_event_thread())
+            raise RuntimeError('PWNDBG nie wspiera "commands" jest to bug w gdb')
 
         detect_another_thread_issue = True
         for prio in HandlerPriority:
             for f in handlers.get(prio, []):
-                print('IS_SAFE', str(event), str(f), str(args), _is_safe_event_thread())
-                if _is_safe_event_thread():
-                    f(*args, **kwargs)
+                f(*args, **kwargs)
         detect_another_thread_issue = False
 
 def after_reload(start: bool = True) -> None:
@@ -296,7 +295,7 @@ def on_reload() -> None:
 
 @new_objfile
 def _start_newobjfile() -> None:
-    gdb.events.start.on_new_objfile()
+    gdb.post_event(gdb.events.start.on_new_objfile)
 
 
 @exit
@@ -306,4 +305,4 @@ def _start_exit() -> None:
 
 @stop
 def _start_stop() -> None:
-    gdb.events.start.on_stop()
+    gdb.events.start.on_exited(gdb.events.start.on_stop)

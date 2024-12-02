@@ -80,7 +80,7 @@ if pwndbg.dbg.is_gdblib_available():
 class Command:
     """Generic command wrapper"""
 
-    builtin_override_whitelist: Set[str] = {"up", "down", "search", "pwd", "start", "ignore"}
+    builtin_override_whitelist: Set[str] = {"up", "down", "search", "pwd", "start", "ignore", "commands"}
     history: Dict[int, str] = {}
 
     def __init__(
