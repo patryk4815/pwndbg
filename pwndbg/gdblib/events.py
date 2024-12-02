@@ -202,7 +202,14 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
             # events safe to execute!
             while queued_invalid_events:
                 queued_invalid_events.popleft()()
-            event_handler(*a, **kw)
+
+            try:
+                event_handler(*a, **kw)
+            except gdb.error as e:
+                error_details = traceback.format_exc()
+                print("Captured stack trace:")
+                print(error_details)
+                raise e
 
     return _inner_handler
 
