@@ -110,26 +110,20 @@ import threading
 #
 # gdb.execute = new_execute
 
-thread_started = False
 
 class EventThreadWorker(threading.Thread):
     def start(self):
         print('START1 THREAD')
-        global thread_started
-        thread_started = True
         super().start()
         print('START2 THREAD')
 
     def run(self):
         print('RUN THREAD')
-        global queued_invalid_events, thread_started
-        while queued_invalid_events:
-            queued_invalid_events.popleft()()
-        thread_started = False
+        print('BEFORE EXECUTE')
+        gdb.execute("", to_string=True)  # Trigger bug, yield to next event
+        print('AFTER EXECUTE')
         print('END THREAD')
 
-
-thread_1: EventThreadWorker = None
 
 
 def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> Callable[P, T]:
@@ -158,13 +152,7 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
 
     @wraps(event_handler)
     def _inner_handler(*a: P.args, **kw: P.kwargs):
-        global queued_invalid_events, thread_started, thread_1
-
-        # Wait until thread is completed
-        if thread_started:
-            print('JOIN1 THREAD')
-            thread_1.join()
-            print('JOIN2 THREAD')
+        global queued_invalid_events
 
         # Implement our custom event gdb.events.start!
         if event_type == gdb.events.new_objfile:
@@ -184,8 +172,10 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
         elif event_type == gdb.events.stop:
             # Workaround to issue with gdb `commands \n continue \n end` - Selected thread is running
             queued_invalid_events.append(lambda: event_handler(*a, **kw))
+
             thread_1 = EventThreadWorker()
             thread_1.start()
+            thread_1.join()
 
             # print('BEFORE EXECUTE')
             # gdb.execute("", to_string=True)  # Trigger bug, yield to next event
