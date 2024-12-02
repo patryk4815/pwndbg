@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import sys
 import time
+import traceback
 from collections import defaultdict
 from collections import deque
 from enum import Enum
@@ -123,6 +124,9 @@ class EventThreadWorker(threading.Thread):
         try:
             gdb.execute("", to_string=True)  # Trigger bug, yield to next event
         except gdb.error as e:
+            error_details = traceback.format_exc()
+            print("Captured stack trace:")
+            print(error_details)
             print('ERR: ' + str(e))
 
         print('AFTER EXECUTE')
