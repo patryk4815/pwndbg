@@ -87,6 +87,20 @@ def start(args=None) -> None:
     entry(args)
 
 
+
+# Starting from 3rd paragraph, the description is
+# taken from the GDB's `starti` command description
+parser = argparse.ArgumentParser(
+    formatter_class=RawTextHelpFormatter,
+    description="""NOT SUPPORTED IN PWNDBG""",
+)
+
+@pwndbg.commands.ArgparsedCommand(parser, category=CommandCategory.START)
+@pwndbg.commands.OnlyWithDbg("gdb")
+def commands() -> None:
+    print('NOT SUPPORTED IN PWNDBG')
+
+
 # Starting from 3rd paragraph, the description is
 # taken from the GDB's `starti` command description
 parser = argparse.ArgumentParser(

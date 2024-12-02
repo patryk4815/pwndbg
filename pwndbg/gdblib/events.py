@@ -262,15 +262,24 @@ def log_objfiles(ofile: gdb.NewObjFileEvent | None = None) -> None:
 
 gdb.events.new_objfile.connect(log_objfiles)
 
+detect_another_thread_issue = False
 # invoke all registered handlers of a certain event type
 def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
+    global detect_another_thread_issue
+
     handlers = registered.get(event)
     if handlers is not None:
+        if detect_another_thread_issue:
+            print('ANOTHER THREAD WTF?')
+            print('IS_SAFE', str(event), str(args), _is_safe_event_thread())
+
+        detect_another_thread_issue = True
         for prio in HandlerPriority:
             for f in handlers.get(prio, []):
                 print('IS_SAFE', str(event), str(f), str(args), _is_safe_event_thread())
                 if _is_safe_event_thread():
                     f(*args, **kwargs)
+        detect_another_thread_issue = False
 
 def after_reload(start: bool = True) -> None:
     if gdb.selected_inferior().pid:
