@@ -130,9 +130,10 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
         global queued_invalid_events, detected_deadlock_in_stop_event
 
         if detected_deadlock_in_stop_event:
+            import os
             print('DEADLOCK DETECTED...')
             print('TODO MSG')
-            sys.exit(1)
+            os._exit(1)
 
         # Implement our custom event gdb.events.start!
         if event_type == gdb.events.new_objfile:
