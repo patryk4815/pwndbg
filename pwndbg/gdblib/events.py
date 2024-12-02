@@ -144,7 +144,6 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
                 "If you still encounter issues, enable the workaround by running: 'set async-workaround-stop-event on'.\n"
                 "Note: Enabling this workaround may cause pwndbg or gdb.commands to behave unpredictably."
             )
-            os._exit(1)
 
         # Implement our custom event gdb.events.start!
         if event_type == gdb.events.new_objfile:
