@@ -138,7 +138,10 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
 
             print("DEADLOCK DETECTED...")
             print(
-                "To resolve this, please enable the workaround by running: 'set async-workaround-stop-event on'.\n"
+                "The deadlock is likely caused by the usage of 'commands[\\n]continue[\\n]end'.\n"
+                "To fix this, replace 'continue' with 'pi gdb.execute(\"continue\")' in your script.\n"
+                "Once you do this, your script will work properly with pwndbg and there will be no need to set 'async-workaround-stop-event'.\n"
+                "If you still encounter issues, enable the workaround by running: 'set async-workaround-stop-event on'.\n"
                 "Note: Enabling this workaround may cause pwndbg or gdb.commands to behave unpredictably."
             )
             os._exit(1)
