@@ -102,7 +102,7 @@ old_execute = gdb.execute
 def new_execute(*args, **kwargs):
     global queued_invalid_events
     while queued_invalid_events:
-        time.sleep(0)  # yield?
+        old_execute("", to_string=True)  # Yield to next event
     return old_execute(*args, **kwargs)
 
 gdb.execute = new_execute
