@@ -98,14 +98,14 @@ def _is_safe_event_thread():
 
 queued_invalid_events: Deque[Callable[..., Any]] = deque()
 
-old_execute = gdb.execute
-def new_execute(*args, **kwargs):
-    global queued_invalid_events
-    while queued_invalid_events:
-        old_execute("", to_string=True)  # Yield to next event
-    return old_execute(*args, **kwargs)
-
-gdb.execute = new_execute
+# old_execute = gdb.execute
+# def new_execute(*args, **kwargs):
+#     global queued_invalid_events
+#     while queued_invalid_events:
+#         old_execute("", to_string=True)  # Yield to next event
+#     return old_execute(*args, **kwargs)
+#
+# gdb.execute = new_execute
 
 def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> Callable[P, T]:
     """
@@ -141,7 +141,8 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
         elif event_type == gdb.events.exited:
             gdb.events.start.on_exited()
         elif event_type == gdb.events.stop:
-            gdb.post_event(gdb.events.start.on_stop)
+            # TODO: after stop
+            queued_invalid_events.append(lambda: gdb.events.start.on_stop())
 
         # Workaround to bugs in GDB...
         if event_type == gdb.events.new_objfile and not _is_safe_event_packet():
@@ -153,6 +154,7 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
             # Workaround to issue with gdb `commands \n continue \n end` - Selected thread is running
             queued_invalid_events.append(lambda: event_handler(*a, **kw))
             gdb.post_event(_loop_until_thread_ok)
+            # gdb.execute("pi gdb.interrupt()")
             return
         else:
             # events safe to execute!
