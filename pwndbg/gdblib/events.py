@@ -317,8 +317,9 @@ def on_reload() -> None:
 
 @before_prompt
 def dumpy_event_before_prompt():
-    pass
+    print('dumpy_event_before_prompt')
+
 
 @inferior_call
 def dumpy_event_inferior_call():
-    pass
+    print('dumpy_event_inferior_call')
