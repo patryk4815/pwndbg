@@ -95,7 +95,10 @@ def _is_safe_event_thread():
     return True
 
 
-def wrap_safe_event_handler(event_handler: Callable[P, T]) -> Callable[P, T]:
+queued_invalid_events: Deque[Callable[..., Any]] = deque()
+
+
+def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> Callable[P, T]:
     """
     Wraps an event handler to ensure it is only executed when the event is safe.
     Invalid events are queued and executed later when safe.
@@ -105,13 +108,10 @@ def wrap_safe_event_handler(event_handler: Callable[P, T]) -> Callable[P, T]:
 
     Workaround to fix bug in gdbserver: https://github.com/pwndbg/pwndbg/issues/2576
     """
-    queued_invalid_events: Deque[Callable[..., Any]] = deque()
-
-    def _event_wrapper(*args, **kwargs):
-        gdb.events.start.on_new_objfile()
-        event_handler(*args, **kwargs)
 
     def _loop_until_thread_ok():
+        global queued_invalid_events
+
         if not queued_invalid_events:
             return
 
@@ -124,15 +124,40 @@ def wrap_safe_event_handler(event_handler: Callable[P, T]) -> Callable[P, T]:
 
     @wraps(event_handler)
     def _inner_handler(*a: P.args, **kw: P.kwargs):
-        if _is_safe_event_packet():
+        global queued_invalid_events
+
+        # Implement our custom event gdb.events.start!
+        if event_type == gdb.events.new_objfile:
+            queued_invalid_events.append(lambda: gdb.events.start.on_new_objfile())
+        elif event_type == gdb.events.exited:
+            gdb.events.start.on_exited()
+        elif event_type == gdb.events.stop:
+            gdb.post_event(gdb.events.start.on_stop)
+
+        # Workaround to bugs in GDB...
+        if event_type == gdb.events.new_objfile and not _is_safe_event_packet():
+            # Workaround to issue with gdbserver - Remote 'g' packet reply is too long
+            queued_invalid_events.append(lambda: event_handler(*a, **kw))
+            gdb.post_event(_loop_until_thread_ok)
+            return
+        elif event_type == gdb.events.stop:
+            # Workaround to issue with gdb `commands \n continue \n end` - Selected thread is running
+            queued_invalid_events.append(lambda: event_handler(*a, **kw))
+            gdb.execute("", to_string=True)   # Trigger bug, yield to next event
+
+            if not _is_safe_event_thread():
+                gdb.post_event(_loop_until_thread_ok)
+                return
+
+            # events safe to execute! Bug not triggered
             while queued_invalid_events:
                 queued_invalid_events.popleft()()
-
-            _event_wrapper(*a, **kw)
             return
-
-        queued_invalid_events.append(lambda: _event_wrapper(*a, **kw))
-        gdb.post_event(_loop_until_thread_ok)
+        else:
+            # events safe to execute!
+            while queued_invalid_events:
+                queued_invalid_events.popleft()()
+            event_handler(*a, **kw)
 
     return _inner_handler
 
@@ -206,12 +231,7 @@ def connect(
     registered[event_handler].setdefault(priority, []).append(caller)
     if event_handler not in connected:
         handle = partial(invoke_event, event_handler)
-
-        if event_handler == gdb.events.new_objfile:
-            handle = wrap_safe_event_handler(handle)
-        if event_handler == gdb.events.stop:
-            handle = lambda x: x
-        #     handle = wrap_safe_event_handler(handle)
+        handle = wrap_safe_event_handler(handle, event_handler)
 
         event_handler.connect(handle)
         connected[event_handler] = handle
@@ -268,31 +288,23 @@ def log_objfiles(ofile: gdb.NewObjFileEvent | None = None) -> None:
 gdb.events.new_objfile.connect(log_objfiles)
 
 detect_another_thread_issue = False
-import threading
-lock = threading.Lock()
 # invoke all registered handlers of a certain event type
 def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
     global detect_another_thread_issue
 
     handlers = registered.get(event)
     if handlers is not None:
-        print('THREADS', threading.active_count())
-        print('TREAHD?', threading.main_thread(), lock.locked(), threading.current_thread())
         if detect_another_thread_issue:
             print('ANOTHER THREAD WTF?')
             print('IS_SAFE', str(event), str(args), _is_safe_event_thread())
             # raise RuntimeError('PWNDBG nie wspiera "commands" jest to bug w gdb')
-            print('TREAHD?', threading.main_thread(), lock.locked(), threading.current_thread())
 
         detect_another_thread_issue = True
-        lock.acquire()
-        try:
-            for prio in HandlerPriority:
-                for f in handlers.get(prio, []):
-                    f(*args, **kwargs)
-        finally:
-            lock.release()
-            detect_another_thread_issue = False
+        for prio in HandlerPriority:
+            for f in handlers.get(prio, []):
+                f(*args, **kwargs)
+        detect_another_thread_issue = False
+
 
 def after_reload(start: bool = True) -> None:
     if gdb.selected_inferior().pid:
@@ -305,18 +317,3 @@ def after_reload(start: bool = True) -> None:
 def on_reload() -> None:
     for functions in registered.values():
         functions.clear()
-
-
-# @new_objfile
-# def _start_newobjfile() -> None:
-#     gdb.post_event()
-
-
-@exit
-def _start_exit() -> None:
-    gdb.events.start.on_exited()
-
-
-@stop
-def _start_stop() -> None:
-    gdb.post_event(gdb.events.start.on_stop)
