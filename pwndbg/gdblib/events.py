@@ -119,7 +119,8 @@ def wrap_safe_event_handler(event_handler: Callable[P, T]) -> Callable[P, T]:
 
     @wraps(event_handler)
     def _inner_handler(*a: P.args, **kw: P.kwargs):
-        if _is_safe_event_packet():
+        is_safe = _is_safe_event_thread() and _is_safe_event_packet()
+        if is_safe:
             while queued_invalid_events:
                 queued_invalid_events.popleft()()
             event_handler(*a, **kw)
