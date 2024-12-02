@@ -267,6 +267,8 @@ def log_objfiles(ofile: gdb.NewObjFileEvent | None = None) -> None:
 gdb.events.new_objfile.connect(log_objfiles)
 
 detect_another_thread_issue = False
+import threading
+lock = threading.Lock()
 # invoke all registered handlers of a certain event type
 def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
     global detect_another_thread_issue
@@ -276,13 +278,17 @@ def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
         if detect_another_thread_issue:
             print('ANOTHER THREAD WTF?')
             print('IS_SAFE', str(event), str(args), _is_safe_event_thread())
-            raise RuntimeError('PWNDBG nie wspiera "commands" jest to bug w gdb')
+            # raise RuntimeError('PWNDBG nie wspiera "commands" jest to bug w gdb')
 
         detect_another_thread_issue = True
-        for prio in HandlerPriority:
-            for f in handlers.get(prio, []):
-                f(*args, **kwargs)
-        detect_another_thread_issue = False
+        lock.acquire()
+        try:
+            for prio in HandlerPriority:
+                for f in handlers.get(prio, []):
+                    f(*args, **kwargs)
+        finally:
+            lock.release()
+            detect_another_thread_issue = False
 
 def after_reload(start: bool = True) -> None:
     if gdb.selected_inferior().pid:
