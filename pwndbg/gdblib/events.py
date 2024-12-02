@@ -183,8 +183,6 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
 
             thread_1 = EventThreadWorker()
             thread_1.start()
-            thread_1.join()
-
             # print('BEFORE EXECUTE')
             # gdb.execute("", to_string=True)  # Trigger bug, yield to next event
             # print('AFTER EXECUTE')
