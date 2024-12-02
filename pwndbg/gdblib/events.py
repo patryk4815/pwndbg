@@ -153,8 +153,20 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
         elif event_type == gdb.events.stop:
             # Workaround to issue with gdb `commands \n continue \n end` - Selected thread is running
             queued_invalid_events.append(lambda: event_handler(*a, **kw))
-            gdb.post_event(_loop_until_thread_ok)
+            print('BEFORE EXECUTE')
+            gdb.execute("", to_string=True)  # Trigger bug, yield to next event
+            print('AFTER EXECUTE')
+
             # gdb.execute("pi gdb.interrupt()")
+            if not _is_safe_event_thread():
+                print('STOP EVNET IS NOT SAFE')
+                gdb.interrupt()
+                gdb.post_event(_loop_until_thread_ok)
+                return
+
+            print('STOP EVENT SAFE')
+            while queued_invalid_events:
+                queued_invalid_events.popleft()()
             return
         else:
             # events safe to execute!
