@@ -168,7 +168,6 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
         elif event_type == gdb.events.exited:
             gdb.events.start.on_exited()
         elif event_type == gdb.events.stop:
-            # TODO: after stop
             queued_invalid_events.append(lambda: gdb.events.start.on_stop())
 
         # Workaround to bugs in GDB...
@@ -183,6 +182,7 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
 
             thread_1 = EventThreadWorker()
             thread_1.start()
+            thread_1.join()
             # print('BEFORE EXECUTE')
             # gdb.execute("", to_string=True)  # Trigger bug, yield to next event
             # print('AFTER EXECUTE')
