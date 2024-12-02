@@ -154,7 +154,7 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
             # Workaround to issue with gdb `commands \n continue \n end` - Selected thread is running
             queued_invalid_events.append(lambda: event_handler(*a, **kw))
             print('BEFORE EXECUTE')
-            gdb.execute("", to_string=True)  # Trigger bug, yield to next event
+            gdb.execute("interrupt -a", to_string=True)  # Trigger bug, yield to next event
             print('AFTER EXECUTE')
 
             # gdb.execute("pi gdb.interrupt()")
