@@ -160,6 +160,7 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
             # gdb.execute("pi gdb.interrupt()")
             if not _is_safe_event_thread():
                 print('STOP EVENT2 IS NOT SAFE')
+                gdb.execute("interrupt -a", to_string=True)
                 gdb.post_event(_loop_until_thread_ok)
                 return
 
