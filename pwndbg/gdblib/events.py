@@ -175,6 +175,7 @@ registered: Dict[Any, Dict[HandlerPriority, List[Callable[..., Any]]]] = {
     gdb.events.before_prompt: {},  # The real event might not exist, but we wrap it
     gdb.events.memory_changed: {},
     gdb.events.register_changed: {},
+    gdb.events.inferior_call: {},
 }
 
 # Registered events are wrapped and aren't directly connected to GDB
