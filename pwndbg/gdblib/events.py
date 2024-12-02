@@ -120,7 +120,11 @@ class EventThreadWorker(threading.Thread):
     def run(self):
         print('RUN THREAD')
         print('BEFORE EXECUTE')
-        gdb.execute("", to_string=True)  # Trigger bug, yield to next event
+        try:
+            gdb.execute("", to_string=True)  # Trigger bug, yield to next event
+        except gdb.error as e:
+            print('ERR: ' + str(e))
+
         print('AFTER EXECUTE')
         print('END THREAD')
 
