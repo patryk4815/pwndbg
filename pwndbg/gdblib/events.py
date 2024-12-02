@@ -149,6 +149,7 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
 
             if not _is_safe_event_thread():
                 print('STOP EVENT IS NOT SAFE')
+                gdb.execute("", to_string=True)
                 # gdb.post_event(_loop_until_thread_ok)
                 return
 
