@@ -98,40 +98,7 @@ def _is_safe_event_thread():
 
 
 queued_invalid_events: Deque[Callable[..., Any]] = deque()
-
-
-import threading
-
-# old_execute = gdb.execute
-# def new_execute(*args, **kwargs):
-#     global queued_invalid_events
-#     while queued_invalid_events:
-#         old_execute("", to_string=True)  # Yield to next event
-#     return old_execute(*args, **kwargs)
-#
-# gdb.execute = new_execute
-
-
-class EventThreadWorker(threading.Thread):
-    def start(self):
-        print('START1 THREAD')
-        super().start()
-        print('START2 THREAD')
-
-    def run(self):
-        print('RUN THREAD')
-        print('BEFORE EXECUTE')
-        try:
-            gdb.execute("", to_string=True)  # Trigger bug, yield to next event
-        except gdb.error as e:
-            error_details = traceback.format_exc()
-            print("Captured stack trace:")
-            print(error_details)
-            print('ERR: ' + str(e))
-
-        print('AFTER EXECUTE')
-        print('END THREAD')
-
+detected_deadlock_in_stop_event = False
 
 
 def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> Callable[P, T]:
@@ -160,7 +127,12 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
 
     @wraps(event_handler)
     def _inner_handler(*a: P.args, **kw: P.kwargs):
-        global queued_invalid_events
+        global queued_invalid_events, detected_deadlock_in_stop_event
+
+        if detected_deadlock_in_stop_event:
+            print('DEADLOCK DETECTED...')
+            print('TODO MSG')
+            sys.exit(1)
 
         # Implement our custom event gdb.events.start!
         if event_type == gdb.events.new_objfile:
@@ -180,34 +152,17 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
             # Workaround to issue with gdb `commands \n continue \n end` - Selected thread is running
             queued_invalid_events.append(lambda: event_handler(*a, **kw))
 
-            thread_1 = EventThreadWorker()
-            thread_1.start()
-            thread_1.join()
-            # print('BEFORE EXECUTE')
-            # gdb.execute("", to_string=True)  # Trigger bug, yield to next event
-            # print('AFTER EXECUTE')
-            #
-            # if not _is_safe_event_thread():
-            #     print('STOP EVENT2 IS NOT SAFE')
-            #     gdb.post_event(_loop_until_thread_ok)
-            #     return
-            #
-            # print('STOP EVENT SAFE')
-            # while queued_invalid_events:
-            #     queued_invalid_events.popleft()()
+            detected_deadlock_in_stop_event = True
+            while queued_invalid_events:
+                queued_invalid_events.popleft()()
+            detected_deadlock_in_stop_event = False
             return
         else:
-            try:
-                # events safe to execute!
-                while queued_invalid_events:
-                    queued_invalid_events.popleft()()
+            # events safe to execute!
+            while queued_invalid_events:
+                queued_invalid_events.popleft()()
 
-                event_handler(*a, **kw)
-            except gdb.error as e:
-                error_details = traceback.format_exc()
-                print("Captured stack trace:")
-                print(error_details)
-                raise e
+            event_handler(*a, **kw)
 
     return _inner_handler
 
