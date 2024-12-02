@@ -24,8 +24,9 @@ import gdb
 from typing_extensions import ParamSpec
 
 from pwndbg import config
+from pwndbg.gdblib.scheduler import lock_scheduler
 
-debug = config.add_param("debug-events", False, "display internal event debugging info")
+debug = config.add_param("debug-events", True, "display internal event debugging info")
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -204,6 +205,8 @@ def connect(
 
         if event_handler == gdb.events.new_objfile:
             handle = wrap_safe_event_handler(handle)
+        if event_handler == gdb.events.stop:
+            handle = wrap_safe_event_handler(handle)
 
         event_handler.connect(handle)
         connected[event_handler] = handle
@@ -264,9 +267,10 @@ gdb.events.new_objfile.connect(log_objfiles)
 def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
     handlers = registered.get(event)
     if handlers is not None:
-        for prio in HandlerPriority:
-            for f in handlers.get(prio, []):
-                f(*args, **kwargs)
+        with lock_scheduler():
+            for prio in HandlerPriority:
+                for f in handlers.get(prio, []):
+                    f(*args, **kwargs)
 
 
 def after_reload(start: bool = True) -> None:
