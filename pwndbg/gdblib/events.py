@@ -267,10 +267,10 @@ gdb.events.new_objfile.connect(log_objfiles)
 def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
     handlers = registered.get(event)
     if handlers is not None:
-        with lock_scheduler():
-            for prio in HandlerPriority:
-                for f in handlers.get(prio, []):
-                    f(*args, **kwargs)
+        for prio in HandlerPriority:
+            for f in handlers.get(prio, []):
+                print('IS_SAFE', str(event), str(f), str(args), _is_safe_event_thread())
+                f(*args, **kwargs)
 
 
 def after_reload(start: bool = True) -> None:
