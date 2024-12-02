@@ -7,6 +7,7 @@ by using a decorator.
 from __future__ import annotations
 
 import sys
+import time
 from collections import defaultdict
 from collections import deque
 from enum import Enum
@@ -97,6 +98,14 @@ def _is_safe_event_thread():
 
 queued_invalid_events: Deque[Callable[..., Any]] = deque()
 
+old_execute = gdb.execute
+def new_execute(*args, **kwargs):
+    global queued_invalid_events
+    while queued_invalid_events:
+        time.sleep(0)  # yield?
+    return old_execute(*args, **kwargs)
+
+gdb.execute = new_execute
 
 def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> Callable[P, T]:
     """
@@ -314,6 +323,7 @@ def after_reload(start: bool = True) -> None:
 def on_reload() -> None:
     for functions in registered.values():
         functions.clear()
+
 
 @before_prompt
 def dumpy_event_before_prompt():
