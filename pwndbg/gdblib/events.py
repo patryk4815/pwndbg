@@ -25,7 +25,13 @@ from typing_extensions import ParamSpec
 
 from pwndbg import config
 
-debug = config.add_param("debug-events", False, "display internal event debugging info")
+debug = config.add_param("debug-events", True, "display internal event debugging info")
+async_workaround_stop_event = config.add_param(
+    "async-workaround-stop-event",
+    False,
+    "Enable asynchronous stop events. This serves as a workaround to ensure 'commands' function correctly, "
+    "as pwndbg or gdb.execute may behave unexpectedly.",
+)
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -95,6 +101,7 @@ def _is_safe_event_thread():
 
 
 queued_invalid_events: Deque[Callable[..., Any]] = deque()
+detected_deadlock_in_stop_event = False
 
 
 def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> Callable[P, T]:
@@ -124,7 +131,17 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
 
     @wraps(event_handler)
     def _inner_handler(*a: P.args, **kw: P.kwargs):
-        global queued_invalid_events
+        global queued_invalid_events, detected_deadlock_in_stop_event
+
+        if detected_deadlock_in_stop_event:
+            import os
+
+            print("DEADLOCK DETECTED...")
+            print(
+                "To resolve this, please enable the workaround by running: 'set async-workaround-stop-event on'.\n"
+                "Note: Enabling this workaround may cause pwndbg or gdb.commands to behave unpredictably."
+            )
+            os._exit(1)
 
         # Implement our custom event gdb.events.start!
         if event_type == gdb.events.new_objfile:
@@ -132,7 +149,7 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
         elif event_type == gdb.events.exited:
             gdb.events.start.on_exited()
         elif event_type == gdb.events.stop:
-            gdb.post_event(gdb.events.start.on_stop)
+            queued_invalid_events.append(lambda: gdb.events.start.on_stop())
 
         # Workaround to bugs in GDB...
         if event_type == gdb.events.new_objfile and not _is_safe_event_packet():
@@ -145,12 +162,21 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
             # Workaround to issue with gdb `commands \n continue \n end` - Selected thread is running
             # https://github.com/pwndbg/pwndbg/issues/425
             queued_invalid_events.append(lambda: event_handler(*a, **kw))
-            gdb.post_event(_loop_until_thread_ok)
+
+            if async_workaround_stop_event:
+                gdb.post_event(_loop_until_thread_ok)
+                return
+
+            detected_deadlock_in_stop_event = True
+            while queued_invalid_events:
+                queued_invalid_events.popleft()()
+            detected_deadlock_in_stop_event = False
             return
         else:
             # events safe to execute!
             while queued_invalid_events:
                 queued_invalid_events.popleft()()
+
             event_handler(*a, **kw)
 
     return _inner_handler
