@@ -276,6 +276,7 @@ def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
     handlers = registered.get(event)
     if handlers is not None:
         print('THREADS', threading.active_count())
+        print('TREAHD?', threading.main_thread(), lock.locked(), threading.current_thread())
         if detect_another_thread_issue:
             print('ANOTHER THREAD WTF?')
             print('IS_SAFE', str(event), str(args), _is_safe_event_thread())
