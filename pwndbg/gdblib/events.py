@@ -309,4 +309,4 @@ def _start_exit() -> None:
 
 @stop
 def _start_stop() -> None:
-    gdb.events.start.on_exited(gdb.events.start.on_stop)
+    gdb.post_event(gdb.events.start.on_stop)
