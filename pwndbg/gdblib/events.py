@@ -199,11 +199,11 @@ def wrap_safe_event_handler(event_handler: Callable[P, T], event_type: Any) -> C
             #     queued_invalid_events.popleft()()
             return
         else:
-            # events safe to execute!
-            while queued_invalid_events:
-                queued_invalid_events.popleft()()
-
             try:
+                # events safe to execute!
+                while queued_invalid_events:
+                    queued_invalid_events.popleft()()
+
                 event_handler(*a, **kw)
             except gdb.error as e:
                 error_details = traceback.format_exc()
