@@ -266,6 +266,10 @@ def mem_changed(func: Callable[[], T], **kwargs: Any) -> Callable[[], T]:
     return connect(func, gdb.events.memory_changed, "mem_changed", **kwargs)
 
 
+def inferior_call(func: Callable[[], T], **kwargs: Any) -> Callable[[], T]:
+    return connect(func, gdb.events.inferior_call, "inferior_call", **kwargs)
+
+
 def log_objfiles(ofile: gdb.NewObjFileEvent | None = None) -> None:
     if not (debug and ofile):
         return None
@@ -309,3 +313,11 @@ def after_reload(start: bool = True) -> None:
 def on_reload() -> None:
     for functions in registered.values():
         functions.clear()
+
+@before_prompt
+def dumpy_event_before_prompt():
+    pass
+
+@inferior_call
+def dumpy_event_inferior_call():
+    pass
