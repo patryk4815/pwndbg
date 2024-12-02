@@ -279,6 +279,7 @@ def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
             print('ANOTHER THREAD WTF?')
             print('IS_SAFE', str(event), str(args), _is_safe_event_thread())
             # raise RuntimeError('PWNDBG nie wspiera "commands" jest to bug w gdb')
+            print('TREAHD?', threading.main_thread(), lock.locked())
 
         detect_another_thread_issue = True
         lock.acquire()
