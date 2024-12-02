@@ -107,6 +107,10 @@ def wrap_safe_event_handler(event_handler: Callable[P, T]) -> Callable[P, T]:
     """
     queued_invalid_events: Deque[Callable[..., Any]] = deque()
 
+    def _event_wrapper(*args, **kwargs):
+        gdb.events.start.on_new_objfile()
+        event_handler(*args, **kwargs)
+
     def _loop_until_thread_ok():
         if not queued_invalid_events:
             return
@@ -120,14 +124,14 @@ def wrap_safe_event_handler(event_handler: Callable[P, T]) -> Callable[P, T]:
 
     @wraps(event_handler)
     def _inner_handler(*a: P.args, **kw: P.kwargs):
-        is_safe = _is_safe_event_thread() and _is_safe_event_packet()
-        if is_safe:
+        if _is_safe_event_packet():
             while queued_invalid_events:
                 queued_invalid_events.popleft()()
-            event_handler(*a, **kw)
+
+            _event_wrapper(*a, **kw)
             return
 
-        queued_invalid_events.append(lambda: event_handler(*a, **kw))
+        queued_invalid_events.append(lambda: _event_wrapper(*a, **kw))
         gdb.post_event(_loop_until_thread_ok)
 
     return _inner_handler
@@ -205,8 +209,8 @@ def connect(
 
         if event_handler == gdb.events.new_objfile:
             handle = wrap_safe_event_handler(handle)
-        if event_handler == gdb.events.stop:
-            handle = wrap_safe_event_handler(handle)
+        # if event_handler == gdb.events.stop:
+        #     handle = wrap_safe_event_handler(handle)
 
         event_handler.connect(handle)
         connected[event_handler] = handle
@@ -293,9 +297,9 @@ def on_reload() -> None:
         functions.clear()
 
 
-@new_objfile
-def _start_newobjfile() -> None:
-    gdb.post_event(gdb.events.start.on_new_objfile)
+# @new_objfile
+# def _start_newobjfile() -> None:
+#     gdb.post_event()
 
 
 @exit
