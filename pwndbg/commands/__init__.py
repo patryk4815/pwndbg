@@ -719,7 +719,6 @@ def load_commands() -> None:
         import pwndbg.commands.ptmalloc2_tracking
         import pwndbg.commands.ida
         import pwndbg.commands.ignore
-        import pwndbg.commands.ipython_interactive
         import pwndbg.commands.kbase
         import pwndbg.commands.kchecksec
         import pwndbg.commands.kcmdline
@@ -759,6 +758,7 @@ def load_commands() -> None:
     import pwndbg.commands.hex2ptr
     import pwndbg.commands.hexdump
     import pwndbg.commands.integration
+    import pwndbg.commands.ipython_interactive
     import pwndbg.commands.jemalloc
     import pwndbg.commands.leakfind
     import pwndbg.commands.linkmap
