@@ -407,6 +407,13 @@ class LLDBType(pwndbg.dbg_mod.Type):
                 )
                 for field in fields_enum
             ]
+        # elif code == lldb.eTypeClassFunction:
+        #     # fields() in gdb return function arguments
+        #     args: List[lldb.SBType] = self.inner.GetFunctionArgumentTypes()
+        #     return [
+        #         f.name
+        #         for f in args
+        #     ]
 
         fields: List[lldb.SBTypeMember] = self.inner.get_fields_array()
         if not fields:

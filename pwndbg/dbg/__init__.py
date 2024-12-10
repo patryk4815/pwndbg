@@ -639,6 +639,24 @@ class Type:
     """
     Class representing a type in the context of an inferior process.
     """
+    def func_arguments(self) -> List[Any] | None:
+        #     # TODO: powinno tylko wspierac:
+        #     #    TYPE_CODE_FUNC
+        #     #    TYPE_CODE_METHOD)
+        #
+        #     # TODO: gdb, nie udalo sie pobrac listy argumentow
+        #     #   to funckja powinna zwraca co? crash?
+        #     # In [26]: a.type
+        # # Out[26]: <gdb.Type code=TYPE_CODE_FUNC name=<text variable, no debug info>>
+        #     #In [28]: a.type.name
+        #     # Out[28]: '<text variable, no debug info>'
+        #
+        #     # TODO: fields() powinno tylko wspierac:
+        #     #    TYPE_CODE_STRUCT
+        #     #    TYPE_CODE_UNION
+        #     #    TYPE_CODE_ENUM
+        #     pass
+        return self.fields()
 
     @property
     def name_identifier(self) -> str | None:
