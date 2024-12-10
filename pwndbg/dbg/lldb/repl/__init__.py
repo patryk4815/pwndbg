@@ -476,7 +476,7 @@ def run_ipython_shell():
 
     def start_ipi():
         import IPython
-        import jedi
+        import jedi  # type: ignore[import-untyped]
 
         jedi.Interpreter._allow_descriptor_getattr_default = False
         IPython.embed(
