@@ -231,6 +231,21 @@ def run(startup: List[str] | None = None, debug: bool = False) -> None:
                 True, False, lldb.SBCommandInterpreterRunOptions(), 0, False, False
             )
             continue
+        if bits[0] == "ipi":
+            print(
+                message.warn(
+                    "You are now entering LLDB mode. In this mode, certain commands may cause Pwndbg to break. Proceed with caution."
+                )
+            )
+            def _start_ipi():
+                import IPython
+                import jedi
+                import pwn
+                jedi.Interpreter._allow_descriptor_getattr_default = False
+                IPython.embed(colors='neutral',banner1='',confirm_exit=False,simple_prompt=False, user_ns=globals())
+
+            _start_ipi()
+            continue
 
         # There are interactive commands that `SBDebugger.HandleCommand` will
         # silently ignore. We have to implement them manually, here.
