@@ -40,7 +40,9 @@ import argparse
 import os
 import re
 import signal
+import sys
 import threading
+from contextlib import contextmanager
 from typing import Any
 from typing import List
 from typing import Tuple
@@ -231,21 +233,6 @@ def run(startup: List[str] | None = None, debug: bool = False) -> None:
                 True, False, lldb.SBCommandInterpreterRunOptions(), 0, False, False
             )
             continue
-        if bits[0] == "ipi":
-            print(
-                message.warn(
-                    "You are now entering LLDB mode. In this mode, certain commands may cause Pwndbg to break. Proceed with caution."
-                )
-            )
-            def _start_ipi():
-                import IPython
-                import jedi
-                import pwn
-                jedi.Interpreter._allow_descriptor_getattr_default = False
-                IPython.embed(colors='neutral',banner1='',confirm_exit=False,simple_prompt=False, user_ns=globals())
-
-            _start_ipi()
-            continue
 
         # There are interactive commands that `SBDebugger.HandleCommand` will
         # silently ignore. We have to implement them manually, here.
@@ -383,6 +370,11 @@ def run(startup: List[str] | None = None, debug: bool = False) -> None:
 
             continue
 
+        if bits[0] == "ipi":
+            # Spawn IPython shell, easy for debugging
+            run_ipython_shell()
+            continue
+
         # The command hasn't matched any of our filtered commands, just let LLDB
         # handle it normally. Either in the context of the process, if we have
         # one, or just in a general context.
@@ -462,6 +454,29 @@ def parse(args: List[str], parser: argparse.ArgumentParser, unsupported: List[st
             return None
 
     return args
+
+
+def run_ipython_shell():
+    @contextmanager
+    def switch_to_ipython_env():
+        saved_excepthook = sys.excepthook
+        saved_ps1 = sys.ps1
+        saved_ps2 = sys.ps2
+        yield
+        # Restore Python's default `ps1`, `ps2`, and `excepthook`
+        # to ensure proper behavior of the LLDB `script` command.
+        sys.ps1 = saved_ps1
+        sys.ps2 = saved_ps2
+        sys.excepthook = saved_excepthook
+
+    def start_ipi():
+        import IPython
+        import jedi
+        jedi.Interpreter._allow_descriptor_getattr_default = False
+        IPython.embed(colors='neutral', banner1='', confirm_exit=False, simple_prompt=False, user_ns=globals())
+
+    with switch_to_ipython_env():
+        start_ipi()
 
 
 target_create_ap = argparse.ArgumentParser(add_help=False)
