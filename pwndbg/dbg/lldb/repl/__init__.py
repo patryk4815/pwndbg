@@ -460,20 +460,28 @@ def run_ipython_shell():
     @contextmanager
     def switch_to_ipython_env():
         saved_excepthook = sys.excepthook
-        saved_ps1 = sys.ps1
-        saved_ps2 = sys.ps2
+        try:
+            saved_ps = sys.ps1, sys.ps2
+        except AttributeError:
+            saved_ps = None
         yield
         # Restore Python's default `ps1`, `ps2`, and `excepthook`
         # to ensure proper behavior of the LLDB `script` command.
-        sys.ps1 = saved_ps1
-        sys.ps2 = saved_ps2
+        if saved_ps is not None:
+            sys.ps1, sys.ps2 = saved_ps
+        else:
+            del sys.ps1
+            del sys.ps2
         sys.excepthook = saved_excepthook
 
     def start_ipi():
         import IPython
         import jedi
+
         jedi.Interpreter._allow_descriptor_getattr_default = False
-        IPython.embed(colors='neutral', banner1='', confirm_exit=False, simple_prompt=False, user_ns=globals())
+        IPython.embed(
+            colors="neutral", banner1="", confirm_exit=False, simple_prompt=False, user_ns=globals()
+        )
 
     with switch_to_ipython_env():
         start_ipi()

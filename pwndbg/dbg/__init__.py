@@ -639,6 +639,7 @@ class Type:
     """
     Class representing a type in the context of an inferior process.
     """
+
     def func_arguments(self) -> List[Any] | None:
         #     # TODO: powinno tylko wspierac:
         #     #    TYPE_CODE_FUNC
