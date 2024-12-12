@@ -52,6 +52,8 @@ def attempt_colorized_symbol(address: int) -> str | None:
     """
     Convert address to colorized symbol (if symbol is there), else None
     """
+    if address < 0:
+        return None
     symbol = pwndbg.aglib.symbol.resolve_addr(address)
     if symbol:
         return get(address, symbol)
@@ -80,6 +82,8 @@ def get(
         prefix(str | None): Optional text to set at beginning in the return value string.
     """
     address = int(address)
+    if address < 0:
+        return None
     page = pwndbg.aglib.vmmap.find(address)
 
     color: Callable[[str], str]

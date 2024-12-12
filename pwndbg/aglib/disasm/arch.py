@@ -316,7 +316,9 @@ class DisassemblyAssistant:
                 # Don't mask immediates - some computations depend on their signed values
                 if op.type is not CS_OP_IMM:
                     op.before_value &= pwndbg.aglib.arch.ptrmask
-                op.symbol = MemoryColor.attempt_colorized_symbol(op.before_value)
+
+                if op.before_value >= 0:
+                    op.symbol = MemoryColor.attempt_colorized_symbol(op.before_value)
 
                 op.before_value_resolved = self._resolve_used_value(
                     op.before_value, instruction, op, emu
@@ -1000,7 +1002,7 @@ class DisassemblyAssistant:
             left, right = instruction.operands
             # If we already used emulation, use the result, otherwise take the source operand before_value
             result = left.after_value or right.before_value
-            if result is not None:
+            if result is not None and result >= 0:
                 TELESCOPE_DEPTH = max(0, int(pwndbg.config.disasm_telescope_depth))
 
                 telescope_addresses = self._telescope(
