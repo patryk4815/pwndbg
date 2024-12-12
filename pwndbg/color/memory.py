@@ -29,6 +29,8 @@ def get_address_and_symbol(address: int) -> str:
     Convert and colorize address 0x7ffff7fcecd0 to string `0x7ffff7fcecd0 (_dl_fini)`
     If no symbol exists for the address, return colorized address
     """
+    if address < 0:
+        return ""
     symbol = pwndbg.aglib.symbol.resolve_addr(address)
     if symbol:
         symbol = f"{address:#x} ({symbol})"
