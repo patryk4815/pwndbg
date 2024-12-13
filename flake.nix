@@ -39,7 +39,7 @@
           overlays = [
             poetry2nix.overlays.default
             (final: prev: {
-              gdb = prev.gdb.override {
+              gdb-new = prev.gdb.override {
                 python3 = prev.python313;
               };
             })
@@ -82,22 +82,28 @@
         {
           pwndbg = import ./nix/pwndbg.nix {
             pkgs = pkgsBySystem.${system};
-            python3 = pkgsBySystem.${system}.python313;
+            python3 = pkgsBySystem.${system}.python;
             gdb = pkgsBySystem.${system}.gdb;
+            inputs.pwndbg = self;
+          };
+          pwndbg-new = import ./nix/pwndbg.nix {
+            pkgs = pkgsBySystem.${system};
+            python3 = pkgsBySystem.${system}.python313;
+            gdb = pkgsBySystem.${system}.gdb-new;
             inputs.pwndbg = self;
           };
           default = self.packages.${system}.pwndbg;
           pwndbg-dev = import ./nix/pwndbg.nix {
             pkgs = pkgsBySystem.${system};
             python3 = pkgsBySystem.${system}.python313;
-            gdb = pkgsBySystem.${system}.gdb;
+            gdb = pkgsBySystem.${system}.gdb-new;
             inputs.pwndbg = self;
             isDev = true;
           };
           pwndbg-lldb = import ./nix/pwndbg.nix {
             pkgs = pkgsBySystem.${system};
             python3 = pkgsBySystem.${system}.python313;
-            gdb = pkgsBySystem.${system}.gdb;
+            gdb = pkgsBySystem.${system}.gdb-new;
             inputs.pwndbg = self;
             isDev = true;
             isLLDB = true;
