@@ -36,7 +36,14 @@
         system:
         import nixpkgs {
           inherit system;
-          overlays = [ poetry2nix.overlays.default ];
+          overlays = [
+            poetry2nix.overlays.default
+            (final: prev: {
+              gdb = prev.gdb.override {
+                python3 = prev.python313;
+              };
+            })
+          ];
         }
       );
       pkgUtil = forAllSystems (system: import ./nix/bundle/pkg.nix { pkgs = pkgsBySystem.${system}; });
@@ -75,21 +82,21 @@
         {
           pwndbg = import ./nix/pwndbg.nix {
             pkgs = pkgsBySystem.${system};
-            python3 = pkgsBySystem.${system}.python3;
+            python3 = pkgsBySystem.${system}.python313;
             gdb = pkgsBySystem.${system}.gdb;
             inputs.pwndbg = self;
           };
           default = self.packages.${system}.pwndbg;
           pwndbg-dev = import ./nix/pwndbg.nix {
             pkgs = pkgsBySystem.${system};
-            python3 = pkgsBySystem.${system}.python3;
+            python3 = pkgsBySystem.${system}.python313;
             gdb = pkgsBySystem.${system}.gdb;
             inputs.pwndbg = self;
             isDev = true;
           };
           pwndbg-lldb = import ./nix/pwndbg.nix {
             pkgs = pkgsBySystem.${system};
-            python3 = pkgsBySystem.${system}.python3;
+            python3 = pkgsBySystem.${system}.python313;
             gdb = pkgsBySystem.${system}.gdb;
             inputs.pwndbg = self;
             isDev = true;

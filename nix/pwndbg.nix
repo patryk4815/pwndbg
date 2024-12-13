@@ -8,14 +8,10 @@
   lldb ? pkgs.lldb_19,
 }:
 let
-  binPath = pkgs.lib.makeBinPath (
-    [
-      python3.pkgs.pwntools # ref: https://github.com/pwndbg/pwndbg/blob/2023.07.17/pwndbg/wrappers/checksec.py#L8
-    ]
-    ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
-      python3.pkgs.ropper # ref: https://github.com/pwndbg/pwndbg/blob/2023.07.17/pwndbg/commands/ropper.py#L30
-    ]
-  );
+  binPath = pkgs.lib.makeBinPath ([
+    pkgs.one_gadget # ref: https://github.com/pwndbg/pwndbg/blob/6727be246f88df09954c11cf2c8ab79687842813/pwndbg/aglib/onegadget.py#L287
+    pkgs.python3.pkgs.ropper # ref: https://github.com/pwndbg/pwndbg/blob/6727be246f88df09954c11cf2c8ab79687842813/pwndbg/commands/ropper.py#L33
+  ]);
 
   pyEnv = import ./pyenv.nix {
     inherit
@@ -28,11 +24,13 @@ let
     lib = pkgs.lib;
   };
 
-  pwndbgVersion = let
-    versionFile = builtins.readFile "${inputs.pwndbg}/pwndbg/lib/version.py";
-    versionMatch = builtins.match ".*\n__version__ = \"([0-9]+.[0-9]+.[0-9]+)\".*" versionFile;
-    version = if versionMatch == null then "unknown" else (builtins.elemAt versionMatch 0);
-  in version;
+  pwndbgVersion =
+    let
+      versionFile = builtins.readFile "${inputs.pwndbg}/pwndbg/lib/version.py";
+      versionMatch = builtins.match ".*\n__version__ = \"([0-9]+.[0-9]+.[0-9]+)\".*" versionFile;
+      version = if versionMatch == null then "unknown" else (builtins.elemAt versionMatch 0);
+    in
+    version;
 
   pwndbg =
     let
