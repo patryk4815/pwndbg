@@ -82,7 +82,7 @@
         {
           pwndbg = import ./nix/pwndbg.nix {
             pkgs = pkgsBySystem.${system};
-            python3 = pkgsBySystem.${system}.python;
+            python3 = pkgsBySystem.${system}.python3;
             gdb = pkgsBySystem.${system}.gdb;
             inputs.pwndbg = self;
           };
