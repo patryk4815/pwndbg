@@ -225,7 +225,7 @@ def parse_socket(url: str) -> ParsedSocket:
             address_ipv4_or_ipv6 = ip[0]
             found_ip_protocol = family_name
 
-        if not found_ip_protocol:
+        if found_ip_protocol:
             break
 
     if not address_ipv4_or_ipv6:
