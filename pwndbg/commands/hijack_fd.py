@@ -8,6 +8,7 @@ from typing import NamedTuple
 from typing import Optional
 from typing import Tuple
 from typing import TypedDict
+from urllib.parse import ParseResult
 from urllib.parse import urlparse
 
 import pwndbg.aglib.memory
@@ -179,8 +180,10 @@ class ParsedSocket(NamedTuple):
 
 
 def parse_socket(url: str) -> ParsedSocket:
-    # Parsowanie przy użyciu urlparse
-    parsed = urlparse(url)
+    if "://" in url:
+        parsed = urlparse(url)
+    else:
+        parsed = ParseResult("", url, "", "", "", "")
 
     scheme_info = parsed.scheme.split("+", 1)
 
@@ -193,9 +196,6 @@ def parse_socket(url: str) -> ParsedSocket:
             elif any_value in ("ipv4", "ipv6"):
                 selected_ip_protocol = any_value
 
-    if selected_protocol not in ("tcp", "udp"):
-        raise argparse.ArgumentTypeError("Protocol only accept: tcp,udp")
-
     domain_or_ip = parsed.hostname
     if not domain_or_ip:
         raise argparse.ArgumentTypeError("Domain or IP is required")
@@ -204,14 +204,14 @@ def parse_socket(url: str) -> ParsedSocket:
     if not port:
         raise argparse.ArgumentTypeError("Port is required")
 
-    protocol_map = {
-        "ipv4": socket.AF_INET,
-        "ipv6": socket.AF_INET6,
-    }
+    protocol_ordered = [
+        ("ipv4", socket.AF_INET),
+        ("ipv6", socket.AF_INET6),
+    ]
 
     found_ip_protocol: Literal["ipv4", "ipv6"] | None = None
     address_ipv4_or_ipv6: str = ""
-    for family_name, family_const in protocol_map.items():
+    for family_name, family_const in protocol_ordered:
         if selected_ip_protocol and selected_ip_protocol != family_name:
             continue
 
