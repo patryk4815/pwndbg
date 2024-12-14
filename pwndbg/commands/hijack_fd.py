@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import socket
 from typing import Literal
+from typing import NamedTuple
+from typing import Optional
 from typing import Tuple
 from typing import TypedDict
+from urllib.parse import urlparse
 
 import pwndbg.aglib.memory
 import pwndbg.aglib.shellcode
@@ -13,23 +17,6 @@ import pwndbg.lib.abi
 import pwndbg.lib.memory
 import pwndbg.lib.regs
 from pwndbg.commands import CommandCategory
-
-parser = argparse.ArgumentParser(
-    formatter_class=argparse.RawTextHelpFormatter,
-    description="""
-    todo
-""",
-)
-parser.add_argument(
-    "fdnum",
-    help="todo",
-    type=int,
-)
-parser.add_argument(
-    "newfile",
-    help="todo",
-    type=str,
-)
 
 
 class ShellcodeRegs(TypedDict):
@@ -102,23 +89,16 @@ def asm_replace_file(replace_fd: int, filename: str) -> Tuple[int, str]:
     )
 
 
-def asm_replace_socket(
-    replace_fd: int,
-    host: str,
-    port: int,
-    proto: Literal["tcp", "udp"],
-    network: Literal["ipv4", "ipv6"],
-) -> Tuple[int, str]:
-    # tcp+ipv4://127.0.0.1:8080
-    # 127.0.0.1:8080
-
+def asm_replace_socket(replace_fd: int, socket_data: ParsedSocket) -> Tuple[int, str]:
     from pwnlib import asm
     from pwnlib import constants
     from pwnlib import shellcraft
     from pwnlib.util.net import sockaddr
 
-    sockdata, addr_len, address_family = sockaddr(host, port, network)
-    socktype = {"tcp": "SOCK_STREAM", "udp": "SOCK_DGRAM"}[proto]
+    sockdata, addr_len, address_family = sockaddr(
+        socket_data.address, socket_data.port, socket_data.ip_version
+    )
+    socktype = {"tcp": "SOCK_STREAM", "udp": "SOCK_DGRAM"}[socket_data.protocol]
 
     regs = get_shellcode_regs()
     stack_size = stack_size_alignment(len(sockdata))
@@ -162,49 +142,140 @@ async def exec_shellcode_with_stack(ec: pwndbg.dbg_mod.ExecutionController, blob
 
             yield
     finally:
-        print(hex(stack_start))
-        print(bytes(original_stack))
-
         pwndbg.aglib.memory.write(stack_start, original_stack)
+
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawTextHelpFormatter,
+    description="""Replace file descriptors of a debugged process.
+
+The new file descriptor can point to:
+- a file
+- a pipe
+- a socket
+- a device, etc.
+
+Examples:
+1. Redirect STDOUT to a file:
+   `hijack-fd 1 /dev/null`
+
+2. Redirect STDIN to a socket:
+   `hijack-fd 0 tcp://localhost:8888`
+""",
+)
+
+parser.add_argument(
+    "fdnum",
+    help="File descriptor (FD) number to be replaced with the specified new socket or file.",
+    type=int,
+)
+
+
+class ParsedSocket(NamedTuple):
+    protocol: Literal["tcp", "udp"]
+    ip_version: Literal["ipv4", "ipv6"]
+    address: str
+    port: int
+
+
+def parse_socket(url: str) -> ParsedSocket:
+    # Parsowanie przy użyciu urlparse
+    parsed = urlparse(url)
+
+    scheme_info = parsed.scheme.split("+", 1)
+
+    selected_protocol: Literal["tcp", "udp"] = "tcp"
+    selected_ip_protocol: Literal["ipv4", "ipv6"] | None = None
+    if parsed.scheme:
+        for any_value in scheme_info:
+            if any_value in ("tcp", "udp"):
+                selected_protocol = any_value
+            elif any_value in ("ipv4", "ipv6"):
+                selected_ip_protocol = any_value
+
+    if selected_protocol not in ("tcp", "udp"):
+        raise argparse.ArgumentTypeError("Protocol only accept: tcp,udp")
+
+    domain_or_ip = parsed.hostname
+    if not domain_or_ip:
+        raise argparse.ArgumentTypeError("Domain or IP is required")
+
+    port = parsed.port
+    if not port:
+        raise argparse.ArgumentTypeError("Port is required")
+
+    protocol_map = {
+        "ipv4": socket.AF_INET,
+        "ipv6": socket.AF_INET6,
+    }
+
+    found_ip_protocol: Literal["ipv4", "ipv6"] | None = None
+    address_ipv4_or_ipv6: str = ""
+    for family_name, family_const in protocol_map.items():
+        if selected_ip_protocol and selected_ip_protocol != family_name:
+            continue
+
+        try:
+            for family, _, _, _, ip in socket.getaddrinfo(domain_or_ip, None, family_const):
+                address_ipv4_or_ipv6 = ip[0]
+                found_ip_protocol = family_name
+                if family == family_const:
+                    break
+        except socket.gaierror:
+            # happen when domain not found
+            continue
+
+    if not address_ipv4_or_ipv6:
+        raise argparse.ArgumentTypeError(
+            f"Could not resolve {domain_or_ip} to proper {selected_ip_protocol} address"
+        )
+
+    if not found_ip_protocol:
+        raise argparse.ArgumentTypeError("Protocol only accept: ipv4,ipv6")
+
+    return ParsedSocket(selected_protocol, found_ip_protocol, address_ipv4_or_ipv6, port)
+
+
+PARSED_FILE_ARG = Tuple[Optional[ParsedSocket], Optional[str]]
+
+
+def parse_file_or_socket(s: str) -> PARSED_FILE_ARG:
+    # is file
+    if s.startswith("/"):
+        return None, s
+    return parse_socket(s), None
+
+
+parser.add_argument(
+    "newfile",
+    help="""Specify a file or a socket.
+
+For files, the filename must start with `/` (e.g., `/etc/passwd`).
+
+For sockets, the following formats are allowed:
+- `127.0.0.1:80` (default is TCP)
+- `tcp://127.0.0.1:80`
+- `udp+ipv4://example.com:80`
+- `tcp+ipv6://example.com:80`
+    """,
+    type=parse_file_or_socket,
+)
 
 
 @pwndbg.commands.ArgparsedCommand(parser, category=CommandCategory.MISC, command_name="hijack-fd")
 @pwndbg.commands.OnlyWhenRunning
-def hijack_fd(fdnum: int, newfile: str) -> None:
+@pwndbg.commands.OnlyWhenUserspace
+def hijack_fd(fdnum: int, newfile: PARSED_FILE_ARG) -> None:
+    socket_data, filename = newfile
+    if filename:
+        stack_size, asm_bin = asm_replace_file(fdnum, filename)
+    elif socket_data:
+        stack_size, asm_bin = asm_replace_socket(fdnum, socket_data)
+    else:
+        assert False
+
     async def ctrl(ec: pwndbg.dbg_mod.ExecutionController):
-        s = asm_replace_file(fdnum, newfile)
-        async with exec_shellcode_with_stack(ec, s[1], s[0]):
-            print("x syscall returned")
+        async with exec_shellcode_with_stack(ec, asm_bin, stack_size):
+            print("ok")
 
     pwndbg.dbg.selected_inferior().dispatch_execution_controller(ctrl)
-
-
-# class ParsedURL(NamedTuple):
-#     protocol: str
-#     ip_version: str
-#     address: str
-#     port: int
-#
-#
-# def parse_url(url: str) -> Optional[ParsedURL]:
-#     try:
-#         # Parsowanie przy użyciu urlparse
-#         parsed = urlparse(url)
-#         if "+" not in parsed.scheme:
-#             return None
-#
-#         protocol, ip_version = parsed.scheme.split("+", 1)
-#
-#         # Sprawdzanie hosta (IPv4 lub IPv6)
-#         address = parsed.hostname
-#         if not address:
-#             return None
-#
-#         # Parsowanie portu
-#         port = parsed.port
-#         if not port:
-#             return None
-#
-#         return ParsedURL(protocol, ip_version, address, port)
-#     except ValueError:
-#         return None
