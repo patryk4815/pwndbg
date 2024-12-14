@@ -216,14 +216,17 @@ def parse_socket(url: str) -> ParsedSocket:
             continue
 
         try:
-            for family, _, _, _, ip in socket.getaddrinfo(domain_or_ip, None, family_const):
-                address_ipv4_or_ipv6 = ip[0]
-                found_ip_protocol = family_name
-                if family == family_const:
-                    break
+            ips = socket.getaddrinfo(domain_or_ip, None, family_const)
         except socket.gaierror:
             # happen when domain not found
             continue
+
+        for _, _, _, _, ip in ips:
+            address_ipv4_or_ipv6 = ip[0]
+            found_ip_protocol = family_name
+
+        if not found_ip_protocol:
+            break
 
     if not address_ipv4_or_ipv6:
         raise argparse.ArgumentTypeError(
