@@ -60,7 +60,7 @@ def get_shellcode_regs() -> ShellcodeRegs:
 
 def stack_size_alignment(s: int) -> int:
     syscall_abi = pwndbg.lib.abi.ABI.syscall()
-    return s + (s - (s % syscall_abi.arg_alignment))
+    return s + (syscall_abi.arg_alignment - (s % syscall_abi.arg_alignment))
 
 
 def asm_replace_file(replace_fd: int, filename: str) -> Tuple[int, str]:
@@ -156,7 +156,7 @@ async def exec_shellcode_with_stack(ec: pwndbg.dbg_mod.ExecutionController, blob
             print('diff: ', hex(stack_end - stack_start))
             print('stack_size: ', hex(stack_size))
             # Make sure stack is not corrupted somehow
-            if not ((stack_end - stack_start) <= stack_size):
+            if not (abs(stack_start - stack_end) <= stack_size):
                 raise AttributeError()
 
             yield
