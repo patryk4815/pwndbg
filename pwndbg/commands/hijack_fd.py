@@ -95,10 +95,9 @@ def asm_replace_socket(replace_fd: int, socket_data: ParsedSocket) -> Tuple[int,
     from pwnlib import shellcraft
     from pwnlib.util.net import sockaddr
 
-    sockdata, addr_len, address_family = sockaddr(
-        socket_data.address, socket_data.port, socket_data.ip_version
-    )
+    sockdata, addr_len, _ = sockaddr(socket_data.address, socket_data.port, socket_data.ip_version)
     socktype = {"tcp": "SOCK_STREAM", "udp": "SOCK_DGRAM"}[socket_data.protocol]
+    family = {"ipv4": "AF_INET", "ipv6": "AF_INET6"}[socket_data.ip_version]
 
     regs = get_shellcode_regs()
     stack_size = stack_size_alignment(len(sockdata))
@@ -108,11 +107,12 @@ def asm_replace_socket(replace_fd: int, socket_data: ParsedSocket) -> Tuple[int,
         if hasattr(constants, "SYS_dup2")
         else shellcraft.syscall("SYS_dup3", regs["newfd"], replace_fd, 0)
     )
+    print(sockdata)
 
     return stack_size, asm.asm(
         "".join(
             [
-                shellcraft.syscall("SYS_socket", address_family, socktype, 0),
+                shellcraft.syscall("SYS_socket", family, socktype, 0),
                 shellcraft.mov(regs["newfd"], regs["syscall_ret"]),
                 shellcraft.pushstr(sockdata, False),
                 shellcraft.syscall("SYS_connect", regs["newfd"], regs["stack"], addr_len),
@@ -159,8 +159,8 @@ Examples:
 1. Redirect STDOUT to a file:
    `hijack-fd 1 /dev/null`
 
-2. Redirect STDIN to a socket:
-   `hijack-fd 0 tcp://localhost:8888`
+2. Redirect STDERR to a socket:
+   `hijack-fd 2 tcp://localhost:8888`
 """,
 )
 
@@ -254,8 +254,8 @@ For files, the filename must start with `/` (e.g., `/etc/passwd`).
 
 For sockets, the following formats are allowed:
 - `127.0.0.1:80` (default is TCP)
-- `tcp://127.0.0.1:80`
-- `udp+ipv4://example.com:80`
+- `tcp://[::1]:80`
+- `udp://example.com:80`
 - `tcp+ipv6://example.com:80`
     """,
     type=parse_file_or_socket,
