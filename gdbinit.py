@@ -20,14 +20,20 @@ import gdb
 
 
 # Fix gdb readline bug: https://github.com/pwndbg/pwndbg/issues/2232#issuecomment-2542564965
-class GdbRemoveReadlineFinder(importlib.abc.MetaPathFinder):
+class GdbRemoveReadlineFinder2(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
         if fullname == "readline":
             raise ImportError("readline module disabled under GDB")
         return None
 
-
-sys.meta_path.insert(0, GdbRemoveReadlineFinder())
+gdb_readline_idx = next(
+    (
+        idx
+        for idx, obj in enumerate(sys.meta_path)
+        if getattr(type(obj), "__name__") == "GdbRemoveReadlineFinder"
+    )
+)
+sys.meta_path[gdb_readline_idx] = GdbRemoveReadlineFinder2()
 
 
 def hash_file(file_path: str | Path) -> str:
