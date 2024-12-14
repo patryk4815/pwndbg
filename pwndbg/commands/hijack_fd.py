@@ -145,15 +145,15 @@ def asm_replace_socket(
 
 @contextlib.asynccontextmanager
 async def exec_shellcode_with_stack(ec: pwndbg.dbg_mod.ExecutionController, blob, stack_size: int):
-    stack_start = pwndbg.aglib.regs.sp
-    original_stack = pwndbg.aglib.memory.read(stack_start - stack_size, stack_size)
+    stack_start_diff = pwndbg.aglib.regs.sp
+    stack_start = stack_start_diff - stack_size
+    original_stack = pwndbg.aglib.memory.read(stack_start, stack_size)
 
     try:
         async with pwndbg.aglib.shellcode.exec_shellcode(
             ec, blob, restore_context=True, disable_breakpoints=True
         ):
-            stack_end = pwndbg.aglib.regs.sp
-            stack_diff_size = stack_start - stack_end
+            stack_diff_size = stack_start_diff - pwndbg.aglib.regs.sp
 
             # Make sure stack is not corrupted somehow
             assert not (
@@ -162,6 +162,9 @@ async def exec_shellcode_with_stack(ec: pwndbg.dbg_mod.ExecutionController, blob
 
             yield
     finally:
+        print(hex(stack_start))
+        print(bytes(original_stack))
+
         pwndbg.aglib.memory.write(stack_start, original_stack)
 
 
