@@ -108,7 +108,6 @@ def asm_replace_socket(replace_fd: int, socket_data: ParsedSocket) -> Tuple[int,
         if hasattr(constants, "SYS_dup2")
         else shellcraft.syscall("SYS_dup3", regs["newfd"], replace_fd, 0)
     )
-    print(sockdata)
 
     return stack_size, asm.asm(
         "".join(
@@ -279,6 +278,6 @@ def hijack_fd(fdnum: int, newfile: PARSED_FILE_ARG) -> None:
 
     async def ctrl(ec: pwndbg.dbg_mod.ExecutionController):
         async with exec_shellcode_with_stack(ec, asm_bin, stack_size):
-            print("ok")
+            print("Operation probably succeeded. Errors are not captured.")
 
     pwndbg.dbg.selected_inferior().dispatch_execution_controller(ctrl)
