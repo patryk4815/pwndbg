@@ -60,20 +60,31 @@ def get_shellcode_regs() -> ShellcodeRegs:
 
 def asm_replace_file(replace_fd: int, filename: str) -> Tuple[int, str]:
     from pwnlib import asm
+    from pwnlib import constants
     from pwnlib import shellcraft
 
     regs = get_shellcode_regs()
     stack_size = len(filename) + 1
-    AT_FDCWD = -100
+
+    open_asm = (
+        shellcraft.syscall("SYS_open", regs["stack"], "O_CREAT|O_RDWR", 0o666)
+        if hasattr(constants, "SYS_open")
+        else shellcraft.syscall("SYS_openat", "AT_FDCWD", regs["stack"], "O_CREAT|O_RDWR", 0o666)
+    )
+
+    dup_asm = (
+        shellcraft.syscall("SYS_dup2", regs["newfd"], replace_fd)
+        if hasattr(constants, "SYS_dup2")
+        else shellcraft.syscall("SYS_dup3", regs["newfd"], replace_fd, 0)
+    )
 
     return stack_size, asm.asm(
         "".join(
             [
                 shellcraft.pushstr(filename),
-                shellcraft.syscall("SYS_openat", AT_FDCWD, regs["stack"], "O_CREAT|O_RDWR", 0o666),
+                open_asm,
                 shellcraft.mov(regs["newfd"], regs["syscall_ret"]),
-                # shellcraft.syscall("SYS_dup2", regs["newfd"], replace_fd),
-                shellcraft.syscall("SYS_dup3", regs["newfd"], replace_fd, 0),
+                dup_asm,
                 shellcraft.syscall("SYS_close", regs["newfd"]),
             ]
         )
@@ -91,6 +102,7 @@ def asm_replace_socket(
     # 127.0.0.1:8080
 
     from pwnlib import asm
+    from pwnlib import constants
     from pwnlib import shellcraft
     from pwnlib.util.net import sockaddr
 
@@ -100,6 +112,12 @@ def asm_replace_socket(
     regs = get_shellcode_regs()
     stack_size = len(sockaddr)
 
+    dup_asm = (
+        shellcraft.syscall("SYS_dup2", regs["newfd"], replace_fd)
+        if hasattr(constants, "SYS_dup2")
+        else shellcraft.syscall("SYS_dup3", regs["newfd"], replace_fd, 0)
+    )
+
     return stack_size, asm.asm(
         "".join(
             [
@@ -107,7 +125,7 @@ def asm_replace_socket(
                 shellcraft.mov(regs["newfd"], regs["syscall_ret"]),
                 shellcraft.pushstr(sockaddr, False),
                 shellcraft.syscall("SYS_connect", regs["newfd"], regs["stack"], addr_len),
-                shellcraft.syscall("SYS_dup2", regs["newfd"], replace_fd),
+                dup_asm,
                 shellcraft.syscall("SYS_close", regs["newfd"]),
             ]
         )
@@ -126,6 +144,10 @@ async def exec_shellcode_with_stack(ec: pwndbg.dbg_mod.ExecutionController, blob
         ):
             stack_end = pwndbg.aglib.regs.sp
 
+            print('stack_start: ', hex(stack_start))
+            print('stack_end: ', hex(stack_end))
+            print('diff: ', hex(stack_end - stack_start))
+            print('stack_size: ', hex(stack_size))
             # Make sure stack is not corrupted somehow
             if not ((stack_end - stack_start) <= stack_size):
                 raise AttributeError()
