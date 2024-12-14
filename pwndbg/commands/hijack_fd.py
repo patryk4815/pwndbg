@@ -64,12 +64,13 @@ def asm_replace_file(replace_fd: int, filename: str) -> Tuple[int, str]:
 
     regs = get_shellcode_regs()
     stack_size = len(filename) + 1
+    AT_FDCWD = -100
 
     return stack_size, asm.asm(
         "".join(
             [
                 shellcraft.pushstr(filename),
-                shellcraft.syscall("SYS_open", regs["stack"], "O_CREAT|O_RDWR", 0o666),
+                shellcraft.syscall("SYS_openat", AT_FDCWD, regs["stack"], "O_CREAT|O_RDWR", 0o666),
                 shellcraft.mov(regs["newfd"], regs["syscall_ret"]),
                 shellcraft.syscall("SYS_dup2", regs["newfd"], replace_fd),
                 shellcraft.syscall("SYS_close", regs["newfd"]),
