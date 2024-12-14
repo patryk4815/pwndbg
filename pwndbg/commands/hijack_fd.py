@@ -72,7 +72,8 @@ def asm_replace_file(replace_fd: int, filename: str) -> Tuple[int, str]:
                 shellcraft.pushstr(filename),
                 shellcraft.syscall("SYS_openat", AT_FDCWD, regs["stack"], "O_CREAT|O_RDWR", 0o666),
                 shellcraft.mov(regs["newfd"], regs["syscall_ret"]),
-                shellcraft.syscall("SYS_dup2", regs["newfd"], replace_fd),
+                # shellcraft.syscall("SYS_dup2", regs["newfd"], replace_fd),
+                shellcraft.syscall("SYS_dup3", regs["newfd"], replace_fd, 0),
                 shellcraft.syscall("SYS_close", regs["newfd"]),
             ]
         )
