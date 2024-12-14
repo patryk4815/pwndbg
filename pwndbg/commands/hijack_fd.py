@@ -44,7 +44,11 @@ def get_shellcode_regs() -> ShellcodeRegs:
 
     # pickup free register what is not used for syscall abi
     newfd_reg = next(
-        (reg_name for reg_name in register_set.gpr if reg_name not in syscall_abi.register_arguments)
+        (
+            reg_name
+            for reg_name in register_set.gpr
+            if reg_name not in syscall_abi.register_arguments
+        )
     )
     assert (
         newfd_reg is not None
@@ -64,7 +68,7 @@ def stack_size_alignment(s: int) -> int:
 
 
 def asm_replace_file(replace_fd: int, filename: str) -> Tuple[int, str]:
-    filename = filename.encode() + b'\x00'
+    filename = filename.encode() + b"\x00"
 
     from pwnlib import asm
     from pwnlib import constants
@@ -141,23 +145,20 @@ def asm_replace_socket(
 
 @contextlib.asynccontextmanager
 async def exec_shellcode_with_stack(ec: pwndbg.dbg_mod.ExecutionController, blob, stack_size: int):
-    stack_start = pwndbg.aglib.regs.sp - stack_size
-    stack_end = 0
-    original_stack = pwndbg.aglib.memory.read(stack_start, stack_size)
+    stack_start = pwndbg.aglib.regs.sp
+    original_stack = pwndbg.aglib.memory.read(stack_start - stack_size, stack_size)
 
     try:
         async with pwndbg.aglib.shellcode.exec_shellcode(
             ec, blob, restore_context=True, disable_breakpoints=True
         ):
             stack_end = pwndbg.aglib.regs.sp
+            stack_diff_size = stack_start - stack_end
 
-            print('stack_start: ', hex(stack_start))
-            print('stack_end: ', hex(stack_end))
-            print('diff: ', hex(stack_end - stack_start))
-            print('stack_size: ', hex(stack_size))
             # Make sure stack is not corrupted somehow
-            if not (abs(stack_start - stack_end) <= stack_size):
-                raise AttributeError()
+            assert not (
+                stack_diff_size > stack_size
+            ), f"stack is probably corrupted size_current=f{stack_diff_size} size_max_want={stack_size}"
 
             yield
     finally:
