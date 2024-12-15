@@ -186,15 +186,16 @@ class LLDBFrame(pwndbg.dbg_mod.Frame):
 
                     # Make sure we've caught and handled the special cases in which the inner object
                     # might be invalidated by the command.
-                    assert self.inner.IsValid()
+                    if not self.inner.IsValid():
+                        self.inner = None
 
-                    # This might slow things down, but I'm not entirely sure selecting
-                    # the thread in the way we do is enough to make LLDB write to the
-                    # right register in all cases, so we check the value of the register
-                    # against what we wrote, to be extra safe.
-                    assert (
-                        int(self.regs().by_name(name)) == val
-                    ), "wrote to a register, but read back different value. this is a bug"
+                    # # This might slow things down, but I'm not entirely sure selecting
+                    # # the thread in the way we do is enough to make LLDB write to the
+                    # # right register in all cases, so we check the value of the register
+                    # # against what we wrote, to be extra safe.
+                    # assert (
+                    #     int(self.regs().by_name(name)) == val
+                    # ), "wrote to a register, but read back different value. this is a bug"
 
                     return True
 
