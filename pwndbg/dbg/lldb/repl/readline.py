@@ -96,12 +96,6 @@ def ctx_with_history():
         readline.write_history_file(HISTORY_FILE)
 
 
-def add_history(command: str):
-    if not command:
-        return
-    readline.add_history(command)
-
-
 def enable_readline(dbg: LLDB):
     """
     Enables the readline functionality.

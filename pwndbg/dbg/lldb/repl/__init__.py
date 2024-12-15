@@ -59,7 +59,6 @@ from pwndbg.dbg.lldb.repl.io import get_io_driver
 from pwndbg.dbg.lldb.repl.proc import EventHandler
 from pwndbg.dbg.lldb.repl.proc import ProcessDriver
 from pwndbg.dbg.lldb.repl.readline import PROMPT
-from pwndbg.dbg.lldb.repl.readline import add_history
 from pwndbg.dbg.lldb.repl.readline import enable_readline
 from pwndbg.dbg.lldb.repl.readline import wrap_with_history
 from pwndbg.lib.tips import color_tip
@@ -213,7 +212,6 @@ def run(startup: List[str] | None = None, debug: bool = False) -> None:
                 startup_i += 1
             else:
                 line = input(PROMPT)
-                add_history(line)
         except EOFError:
             # Exit the REPL if there's nothing else to run.
             print()
