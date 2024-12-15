@@ -17,6 +17,7 @@ import pwndbg.aglib.file
 import pwndbg.aglib.memory
 import pwndbg.aglib.proc
 import pwndbg.aglib.regs
+import pwndbg.aglib.symbol
 import pwndbg.aglib.typeinfo
 import pwndbg.chain
 import pwndbg.integration
@@ -25,9 +26,6 @@ import pwndbg.lib.funcparser
 import pwndbg.lib.functions
 from pwndbg.aglib.disasm.instruction import PwndbgInstruction
 from pwndbg.aglib.nearpc import c as N
-
-if pwndbg.dbg.is_gdblib_available():
-    import gdb
 
 
 def get(instruction: PwndbgInstruction) -> List[Tuple[pwndbg.lib.functions.Argument, int]]:
@@ -56,7 +54,7 @@ def get(instruction: PwndbgInstruction) -> List[Tuple[pwndbg.lib.functions.Argum
         if not target:
             return []
 
-        name = pwndbg.dbg.selected_inferior().symbol_name_at_address(target)
+        name = pwndbg.aglib.symbol.resolve_addr(target)
         if not name:
             return []
     elif CS_GRP_INT in instruction.groups:
@@ -73,11 +71,7 @@ def get(instruction: PwndbgInstruction) -> List[Tuple[pwndbg.lib.functions.Argum
     result = []
     name = name or ""
 
-    if pwndbg.dbg.is_gdblib_available():
-        sym = gdb.lookup_symbol(name)
-    else:
-        sym = None
-
+    sym = pwndbg.aglib.symbol.lookup_frame_symbol(name)
     name = name.replace("isoc99_", "")  # __isoc99_sscanf
     name = name.replace("@plt", "")  # getpwiod@plt
 
@@ -90,14 +84,16 @@ def get(instruction: PwndbgInstruction) -> List[Tuple[pwndbg.lib.functions.Argum
 
     func = pwndbg.lib.functions.functions.get(name, None)
 
-    # Try to extract the data from GDB.
-    # Note that this is currently broken, pending acceptance of
-    # my patch: https://sourceware.org/ml/gdb-patches/2015-06/msg00268.html
-    if sym and sym[0]:
+    if sym:
         try:
-            n_args_default = len(sym[0].type.fields())
-        except TypeError:
-            pass
+            target_type = sym.type.target()
+        except Exception:
+            target_type = sym.type
+
+        if target_type and target_type.code == pwndbg.dbg_mod.TypeCode.FUNC:
+            func_args = target_type.func_arguments()
+            if func_args is not None:
+                n_args_default = len(func_args)
 
     # Try to grab the data out of IDA
     if not func and target:

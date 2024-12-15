@@ -18,6 +18,7 @@ from typing import TypeVar
 from typing_extensions import ParamSpec
 
 import pwndbg.aglib.heap
+import pwndbg.aglib.kernel
 import pwndbg.aglib.proc
 import pwndbg.aglib.qemu
 import pwndbg.aglib.regs
@@ -26,13 +27,6 @@ from pwndbg.aglib.heap.ptmalloc import DebugSymsHeap
 from pwndbg.aglib.heap.ptmalloc import GlibcMemoryAllocator
 from pwndbg.aglib.heap.ptmalloc import HeuristicHeap
 from pwndbg.aglib.heap.ptmalloc import SymbolUnresolvableError
-
-# These aren't available under LLDB, and we can't get rid of them until all of
-# this functionality has been ported to the Debugger API.
-#
-# TODO: Replace these with uses of the Debugger API.
-if pwndbg.dbg.is_gdblib_available():
-    import pwndbg.gdblib.kernel
 
 log = logging.getLogger(__name__)
 
@@ -392,7 +386,7 @@ def OnlyWithDbg(
 def OnlyWithKernelDebugSyms(function: Callable[P, T]) -> Callable[P, Optional[T]]:
     @functools.wraps(function)
     def _OnlyWithKernelDebugSyms(*a: P.args, **kw: P.kwargs) -> Optional[T]:
-        if pwndbg.gdblib.kernel.has_debug_syms():
+        if pwndbg.aglib.kernel.has_debug_syms():
             return function(*a, **kw)
         else:
             log.error(
@@ -406,7 +400,7 @@ def OnlyWithKernelDebugSyms(function: Callable[P, T]) -> Callable[P, Optional[T]
 def OnlyWhenPagingEnabled(function: Callable[P, T]) -> Callable[P, Optional[T]]:
     @functools.wraps(function)
     def _OnlyWhenPagingEnabled(*a: P.args, **kw: P.kwargs) -> Optional[T]:
-        if pwndbg.gdblib.kernel.paging_enabled():
+        if pwndbg.aglib.kernel.paging_enabled():
             return function(*a, **kw)
         else:
             log.error(f"{function.__name__}: This command may only be run when paging is enabled.")
@@ -737,7 +731,6 @@ def load_commands() -> None:
         import pwndbg.commands.binja
         import pwndbg.commands.branch
         import pwndbg.commands.cymbol
-        import pwndbg.commands.godbg
         import pwndbg.commands.got
         import pwndbg.commands.got_tracking
         import pwndbg.commands.ptmalloc2_tracking
@@ -779,6 +772,7 @@ def load_commands() -> None:
     import pwndbg.commands.flags
     import pwndbg.commands.gdt
     import pwndbg.commands.ghidra
+    import pwndbg.commands.godbg
     import pwndbg.commands.hex2ptr
     import pwndbg.commands.hexdump
     import pwndbg.commands.hijack_fd

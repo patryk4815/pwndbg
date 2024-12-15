@@ -42,8 +42,6 @@ ptrdiff: pwndbg.dbg_mod.Type
 size_t: pwndbg.dbg_mod.Type
 ssize_t: pwndbg.dbg_mod.Type
 
-null: pwndbg.dbg_mod.Type
-
 
 def lookup_types(*types: str) -> pwndbg.dbg_mod.Type:
     process = pwndbg.dbg.selected_inferior()
@@ -99,8 +97,6 @@ def update() -> None:
     else:
         raise Exception("Pointer size not supported")
 
-    module.null = pwndbg.dbg.selected_inferior().evaluate_expression("0").cast(void)
-
 
 def load(name: str) -> Optional[pwndbg.dbg_mod.Type]:
     """Load a symbol; note that new symbols can be added with `add-symbol-file` functionality"""
@@ -108,6 +104,14 @@ def load(name: str) -> Optional[pwndbg.dbg_mod.Type]:
     if len(names) > 0:
         return names[0]
     return None
+
+
+def enum_member(type_name: str, member: str) -> int | None:
+    t = load(type_name)
+    if t is None:
+        return None
+
+    return next((f.enumval for f in t.fields() if f.name == member), None)
 
 
 def get_type(size: int) -> pwndbg.dbg_mod.Type:

@@ -2,22 +2,25 @@ from __future__ import annotations
 
 from typing import Iterator
 
-import gdb
+import pwndbg
+import pwndbg.aglib.memory
+import pwndbg.aglib.symbol
+import pwndbg.aglib.typeinfo
 
 
 def offset_of(typename: str, fieldname: str) -> int:
-    ptr_type = gdb.lookup_type(typename).pointer()
-    dummy = gdb.Value(0).cast(ptr_type)
+    dummy = pwndbg.aglib.memory.get_typed_pointer(typename, 0)
     return int(dummy[fieldname].address)
 
 
-def container_of(ptr: int, typename: str, fieldname: str) -> gdb.Value:
-    ptr_type = gdb.lookup_type(typename).pointer()
+def container_of(ptr: int, typename: str, fieldname: str) -> pwndbg.dbg_mod.Value:
     obj_addr = int(ptr) - offset_of(typename, fieldname)
-    return gdb.Value(obj_addr).cast(ptr_type)
+    return pwndbg.aglib.memory.get_typed_pointer(typename, obj_addr)
 
 
-def for_each_entry(head: gdb.Value, typename: str, field: str) -> Iterator[gdb.Value]:
+def for_each_entry(
+    head: pwndbg.dbg_mod.Value, typename: str, field: str
+) -> Iterator[pwndbg.dbg_mod.Value]:
     head_addr = int(head.address)
     addr = head["next"]
     addr_int = int(addr)
@@ -40,21 +43,23 @@ def swab(x: int) -> int:
     )
 
 
-def _arr(x: gdb.Value, n: int) -> gdb.Value:
+def _arr(x: pwndbg.dbg_mod.Value, n: int) -> pwndbg.dbg_mod.Value:
     """returns the nth element of type x, starting at address of x"""
     ptr = x.address.cast(x.type.pointer())
     return (ptr + n).dereference()
 
 
-def compound_head(page: gdb.Value) -> gdb.Value:
+def compound_head(page: pwndbg.dbg_mod.Value) -> pwndbg.dbg_mod.Value:
     """returns the head page of compound pages"""
-    assert page.type.name == "page"
+    assert page.type.code == pwndbg.dbg_mod.TypeCode.STRUCT and page.type.name_identifier == "page"
     # https://elixir.bootlin.com/linux/v6.2/source/include/linux/page-flags.h#L249
     head = page["compound_head"]
     if int(head) & 1:
         return (head - 1).cast(page.type.pointer()).dereference()
 
-    pg_head = int(gdb.lookup_static_symbol("PG_head").value())
+    pg_head = pwndbg.aglib.typeinfo.enum_member("enum pageflags", "PG_head")
+    assert pg_head is not None, "Type 'enum pageflags' not found Or member 'PG_head' not exists"
+
     # https://elixir.bootlin.com/linux/v6.2/source/include/linux/page-flags.h#L212
     if int(page["flags"]) & (1 << pg_head):
         next_page = _arr(page, 1)

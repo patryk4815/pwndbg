@@ -4,6 +4,7 @@ import bisect
 import collections
 import os
 import random
+import re
 import shlex
 import sys
 from typing import Any
@@ -12,6 +13,7 @@ from typing import Callable
 from typing import Coroutine
 from typing import Dict
 from typing import Generator
+from typing import Iterator
 from typing import List
 from typing import Literal
 from typing import Sequence
@@ -100,6 +102,30 @@ class LLDBFrame(pwndbg.dbg_mod.Frame):
         assert inner.IsValid()
         self.inner = inner
         self.proc = proc
+
+    @override
+    def lookup_symbol(
+        self,
+        name: str,
+        *,
+        type: pwndbg.dbg_mod.SymbolLookupType = pwndbg.dbg_mod.SymbolLookupType.ANY,
+    ) -> pwndbg.dbg_mod.Value | None:
+        # FIXME: how to sanitize symbol name better?
+        if not re.match(r"^[a-zA-Z0-9_.:@*/$]+$", name):
+            raise pwndbg.dbg_mod.Error(f"Symbol {name!r} contains invalid characters")
+
+        value = None
+        try:
+            value = self.evaluate_expression(f"&{name}")
+        except pwndbg.dbg_mod.Error:
+            pass
+
+        if value is None:
+            # Fallback because `evaluate_expression` may fail to resolve symbols for TLS variables.
+            # This issue occurs on certain architectures (e.g., it works fine on x86_64 but fails on aarch64).
+            value = self.proc.lookup_symbol(name, type=type)
+
+        return value
 
     @override
     def evaluate_expression(
@@ -282,6 +308,10 @@ def map_type_code(type: lldb.SBType) -> pwndbg.dbg_mod.TypeCode:
         return pwndbg.dbg_mod.TypeCode.POINTER
     if c == lldb.eTypeClassArray:
         return pwndbg.dbg_mod.TypeCode.ARRAY
+    if c == lldb.eTypeClassEnumeration:
+        return pwndbg.dbg_mod.TypeCode.ENUM
+    if c == lldb.eTypeClassFunction:
+        return pwndbg.dbg_mod.TypeCode.FUNC
 
     f = type.GetTypeFlags()
 
@@ -329,7 +359,15 @@ class LLDBType(pwndbg.dbg_mod.Type):
         return self.inner == other.inner
 
     @property
-    def name(self) -> str:
+    @override
+    def name_identifier(self) -> str | None:
+        if self.inner.IsAnonymousType():
+            return None
+        return self.inner.name
+
+    @property
+    @override
+    def name_to_human_readable(self) -> str:
         return self.inner.name
 
     @property
@@ -353,25 +391,51 @@ class LLDBType(pwndbg.dbg_mod.Type):
         return map_type_code(self.inner)
 
     @override
-    def fields(self) -> List[pwndbg.dbg_mod.TypeField] | None:
-        fields = self.inner.get_fields_array()
-        return (
-            [
+    def func_arguments(self) -> List[pwndbg.dbg_mod.Type] | None:
+        if self.code != pwndbg.dbg_mod.TypeCode.FUNC:
+            raise TypeError("only available for function type")
+
+        args: List[lldb.SBType] = self.inner.GetFunctionArgumentTypes()
+        if not args:
+            return []
+        return [LLDBType(arg) for arg in args]
+
+    @override
+    def fields(self) -> List[pwndbg.dbg_mod.TypeField]:
+        if self.code == pwndbg.dbg_mod.TypeCode.ENUM:
+            fields_enum: List[lldb.SBTypeEnumMember] = self.inner.get_enum_members_array()
+            if not fields_enum:
+                return []
+            return [
                 pwndbg.dbg_mod.TypeField(
-                    field.bit_offset,
+                    0,
                     field.name,
                     LLDBType(field.type),
                     self,
-                    0,  # TODO: Handle fields for enum types differently.
+                    field.signed,
                     False,
-                    False,  # TODO: Handle base class members differently.
-                    field.bitfield_bit_size if field.is_bitfield else field.type.GetByteSize(),
+                    False,
+                    0,
                 )
-                for field in fields
+                for field in fields_enum
             ]
-            if len(fields) > 0
-            else None
-        )
+
+        fields: List[lldb.SBTypeMember] = self.inner.get_fields_array()
+        if not fields:
+            return []
+        return [
+            pwndbg.dbg_mod.TypeField(
+                field.bit_offset,
+                field.name,
+                LLDBType(field.type),
+                self,
+                0,
+                False,
+                False,  # TODO: Handle base class members differently.
+                field.bitfield_bit_size if field.is_bitfield else field.type.GetByteSize(),
+            )
+            for field in fields
+        ]
 
     @override
     def array(self, count: int) -> pwndbg.dbg_mod.Type:
@@ -385,7 +449,7 @@ class LLDBType(pwndbg.dbg_mod.Type):
     def strip_typedefs(self) -> pwndbg.dbg_mod.Type:
         t = self.inner
         while t.IsTypedefType():
-            t = t.GetTypedefedType
+            t = t.GetTypedefedType()
 
         return LLDBType(t)
 
@@ -514,9 +578,12 @@ class LLDBValue(pwndbg.dbg_mod.Value):
     @override
     def cast(self, type: pwndbg.dbg_mod.Type | Any) -> pwndbg.dbg_mod.Value:
         assert isinstance(type, LLDBType)
-        t: LLDBType = type
+        type: LLDBType = type
 
-        return LLDBValue(self.inner.Cast(t.inner), self.proc)
+        if type.code == pwndbg.dbg_mod.TypeCode.FUNC:
+            raise pwndbg.dbg_mod.Error("Cast to function type is not allowed, use pointer")
+
+        return LLDBValue(self.inner.Cast(type.inner), self.proc)
 
     def _self_add_sub_int(self, val: int) -> pwndbg.dbg_mod.Value:
         """
@@ -1123,17 +1190,25 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
     @override
     def symbol_name_at_address(self, address: int) -> str | None:
         addr = lldb.SBAddress(address, self.target)
-        ctx = self.target.ResolveSymbolContextForAddress(addr, lldb.eSymbolContextSymbol)
+
+        # We are using `lldb.eSymbolContextEverything` because it can find symbols without debug info.
+        # Additional information:
+        # `eSymbolContextVariable` is potentially expensive to look up,
+        # so it is not included in `eSymbolContextEverything`.
+        ctx = self.target.ResolveSymbolContextForAddress(addr, lldb.eSymbolContextEverything)
 
         if not ctx.IsValid() or not ctx.symbol.IsValid():
             return None
 
+        # TODO: In GDB, we return something like `main+0x10`, but in LLDB, we do not.
         return ctx.symbol.name
 
     def _resolve_tls_symbol(self, sym: lldb.SBSymbol) -> int | None:
         """
         Attemps to resolve the address of a symbol stored in TLS.
         """
+        # Please read book: https://akkadia.org/drepper/tls.pdf
+        #
         # LLDB doesn't handle symbols marked with STT_TLS at all[1], which
         # means that not only will they not have a type, they will also
         # give completely wrong results for GetStartAddress(), meaning we
@@ -1145,8 +1220,7 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         # far from reliable, but it's the best we've got until LLDB gives us
         # a proper way to handle these symbols.
         #
-        # Additionally, this is a Linux+Glibc+x86_64-only workaround, for
-        # now. We might need to expand it to other systems as time goes on.
+        # Additionally, this is a Linux+Glibc-only workaround, for now.
         # We'll see. We should also consider parsing the symbols in the ELF
         # file associated with the module LLDB found the symbol in, to check
         # for whether this is a TLS symbol.
@@ -1158,12 +1232,6 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         # [1]: https://github.com/llvm/llvm-project/blob/86cf67ffc1ee62c65bef313bf58ae70f74afb7c1/lldb/source/Plugins/ObjectFile/ELF/ObjectFileELF.cpp#L2140
 
         if not self.is_linux():
-            print(
-                f"warning: symbol '{sym.GetName()}' might be a TLS symbol, but Pwndbg only knows how to resolve those in x86-64 GNU/Linux"
-            )
-            return None
-
-        if not self.arch().name == "x86-64":
             print(
                 f"warning: symbol '{sym.GetName()}' might be a TLS symbol, but Pwndbg only knows how to resolve those in x86-64 GNU/Linux"
             )
@@ -1191,16 +1259,13 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         # [1]: https://elixir.bootlin.com/glibc/glibc-2.40.9000/source/sysdeps/x86_64/nptl/tls.h#L70
         # [2]: https://elixir.bootlin.com/glibc/glibc-2.40.9000/source/sysdeps/generic/dl-dtv.h#L33
         offset = sym.GetValue()
+        import pwndbg.aglib.memory
 
-        for i in range(self.target.GetNumModules() + 1):
-            # This is the same as `tls_base->dtv[i].pointer.val + offset`.
-            candidate = (
-                pwndbg.aglib.memory.pvoid(pwndbg.aglib.memory.pvoid(tls_base + 8) + (16 * i))
-                + offset
-            )
+        tls_base_typed = pwndbg.aglib.memory.get_typed_pointer("typedef tcbhead_t", tls_base)
 
-            import pwndbg.aglib.memory
-
+        for module_id in range(self.target.GetNumModules() + 1):
+            # This is the same as `tls_base->dtv[module_id].pointer.val + offset`.
+            candidate = int(tls_base_typed["dtv"][module_id]["pointer"]["val"]) + offset
             if pwndbg.aglib.memory.peek(candidate):
                 # Take a guess that we hit the right TLS block and return what
                 # we got.
@@ -1212,27 +1277,155 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         return None
 
     @override
-    def symbol_address_from_name(self, name: str, prefer_static: bool = False) -> int | None:
-        # LLDB doesn't have the concept of a static block like GDB does, we just
-        # don't do anything to select for static variables if we're asked to do
-        # so.
-        symbols = self.target.FindSymbols(name)
+    def lookup_symbol(
+        self,
+        name: str,
+        *,
+        prefer_static: bool = False,
+        type: pwndbg.dbg_mod.SymbolLookupType = pwndbg.dbg_mod.SymbolLookupType.ANY,
+        objfile_endswith: str | None = None,
+    ) -> pwndbg.dbg_mod.Value | None:
+        objfile: lldb.SBModule | None = None
+        if objfile_endswith is not None:
+            for m in self.target.module_iter():
+                if str(m.file.fullpath).endswith(objfile_endswith):
+                    objfile = m
+                    break
+            if objfile is None:
+                raise pwndbg.dbg_mod.Error(f"Objfile '{objfile_endswith}' not found")
 
-        if symbols.GetSize() == 0:
+        symbol_for_preference = None
+        for sym, cast_type, resolved_addr in self._iter_symbols(name, type, objfile):
+            is_static = not sym.IsExternal()
+            if prefer_static == is_static:
+                symbol_for_preference = sym, cast_type, resolved_addr
+                break
+
+            if symbol_for_preference is None:
+                symbol_for_preference = sym, cast_type, resolved_addr
+
+        if symbol_for_preference is None:
             return None
 
-        sym = symbols.GetContextAtIndex(0).symbol
-        if not sym.IsValid():
-            return None
+        sym, cast_type, resolved_addr = symbol_for_preference
+        return self.create_value(resolved_addr, cast_type)
 
-        if sym.GetType() == lldb.eSymbolTypeAny:
-            # Symbols with type eSymbolTypeAny may be TLS symbols, try to resolve
-            # this one and see if we can get a reasonable answer.
-            tls = self._resolve_tls_symbol(sym)
-            if tls:
-                return tls
+    def _iter_symbols(
+        self, name: str, type: pwndbg.dbg_mod.SymbolLookupType, objfile: lldb.SBModule | None = None
+    ) -> Iterator[Tuple[lldb.SBSymbol, pwndbg.dbg_mod.Type, int]]:
+        # Info from commit: https://github.com/llvm/llvm-project/commit/bcf2cfbdc5f7b8998d1a06e2e4b640dd42a5b10f
+        # eSymbolTypeFunction: eSymbolTypeCode with IsDebug() == true
+        #   eSymbolTypeGlobal: eSymbolTypeData with IsDebug() == true and IsExternal() == true
+        #   eSymbolTypeStatic: eSymbolTypeData with IsDebug() == true and IsExternal() == false
+        #
+        # Global Variables:
+        # Use t.FindSymbols('main_arena', lldb.eSymbolTypeData)
+        #
+        # Global Functions:
+        # Use t.FindSymbols('free', lldb.eSymbolTypeCode)
+        #
+        # Local Variables:
+        # Directly finding local variables is not possible using t.FindSymbols
+        #
+        # Local/Global Variables, Functions, or Any Symbol:
+        # Use pwndbg.dbg.selected_frame().evaluate_expression('&result_local')
+        # Note that this approach works for both local and global variables as well as functions.
+        #
+        # Note using `evaluate_expression` on TLS Variables:
+        # TLS variables may not work on some architectures. For example, this approach
+        # works fine on x86_64, but may fail on aarch64 or other architectures.
 
-        return sym.GetStartAddress().GetLoadAddress(self.target)
+        # We need to map variable types to symbols...
+        # This approach may not work correctly if there are multiple global variables with the same <name> and <address>.
+        # The same address may occur for TLS symbols, as they have a `0xffffffffffffffff` address.
+        # We are doing this, because `FindGlobalVariables` don't support searching symbols in specific objfile
+        variables_types: Dict[Tuple[int, str], LLDBType] = {}
+
+        if type in (pwndbg.dbg_mod.SymbolLookupType.VARIABLE, pwndbg.dbg_mod.SymbolLookupType.ANY):
+            variables: lldb.SBValueList = self.target.FindGlobalVariables(name, 0)
+            var: lldb.SBValue
+            for var in variables:
+                # LLDB[1] is attempting to resolve a TLS variable, but it fails with the following error:
+                # [1] https://github.com/llvm/llvm-project/blob/1dfa34c8e1f28963f059e05ce89ebf1f76ebbddc/lldb/source/Expression/DWARFExpression.cpp#L2198
+                #
+                # is_tls = var.error and var.error.description == 'no thread to evaluate TLS within'
+
+                # <address>, <variable_name>
+                key = (int(var.GetLoadAddress()), var.GetName())
+                variables_types[key] = LLDBType(var.GetType())
+
+        domains = {
+            pwndbg.dbg_mod.SymbolLookupType.ANY: (lldb.eSymbolTypeAny,),
+            # TLS variables are included under `eSymbolTypeAny`, so we need to check
+            pwndbg.dbg_mod.SymbolLookupType.VARIABLE: (lldb.eSymbolTypeData, lldb.eSymbolTypeAny),
+            pwndbg.dbg_mod.SymbolLookupType.FUNCTION: (lldb.eSymbolTypeCode,),
+        }[type]
+
+        symbols_iter: Iterator[lldb.SBSymbolContextList] = (
+            (objfile or self.target).FindSymbols(name, domain) for domain in domains
+        )
+        for symbols in symbols_iter:
+            size = symbols.GetSize()
+            if size == 0:
+                continue
+
+            for i in range(size):
+                sym: lldb.SBSymbol = symbols.GetContextAtIndex(i).symbol
+                if not sym:
+                    continue
+
+                if not sym.IsValid():
+                    continue
+
+                addr: lldb.SBAddress = sym.GetStartAddress()
+                if not addr.IsValid():
+                    continue
+
+                resolved_addr = addr.GetLoadAddress(self.target)
+                resolved_size = sym.GetSize()
+                sym_name = sym.GetName()
+
+                cast_type: pwndbg.dbg_mod.Type
+                if addr.function.IsValid():
+                    # is function
+                    cast_type = LLDBType(addr.function.type).pointer()
+                else:
+                    # is variable maybe or others types
+
+                    # LLDB lacks support for types in symbols
+                    # So we have manually find types
+                    cast_type = variables_types.get((resolved_addr, sym_name), None)
+                    if cast_type is not None:
+                        # Detect if we have proper symbol by size, we can't do better here
+                        assert (
+                            cast_type.sizeof == resolved_size
+                        ), f"Symbol {sym_name} has invalid size (has:{cast_type.sizeof:02x}, needed:{resolved_size:02x}), should not happen"
+
+                        # Cast to pointer, we are returning address at end ;)
+                        cast_type = cast_type.pointer()
+                    else:
+                        # Address without/unknown type, we cast to void pointer
+                        # This happens eg:
+                        # - when function don't have debug info
+                        # - variable has missing debug info
+                        # TODO: Should we create a 'pvoidfunc' type.
+                        #   This could be useful for identifying functions without debug info.
+                        cast_type = pwndbg.aglib.typeinfo.pvoid
+
+                sym_type = sym.GetType()
+                if addr.section.name in (".tbss", ".tdata") and sym_type == lldb.eSymbolTypeInvalid:
+                    # Additionally, we check only TLS sections (.tbss and .tdata).
+                    # Symbols with type eSymbolTypeInvalid might represent TLS symbols.
+                    # Attempt to resolve this symbol and verify if it provides a valid result.
+                    tls = self._resolve_tls_symbol(sym)
+                    if tls:
+                        yield sym, cast_type, tls
+                    continue
+
+                if resolved_addr == lldb.LLDB_INVALID_ADDRESS:
+                    continue
+
+                yield sym, cast_type, resolved_addr
 
     def types_with_name(self, name: str) -> Sequence[pwndbg.dbg_mod.Type]:
         types = self.target.FindTypes(name)
@@ -1376,7 +1569,7 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
     @override
     def is_linux(self) -> bool:
         # LLDB will at most tell us if this is a SysV ABI process.
-        return self.target.GetABIName().startswith("sysv")
+        return self.target.GetABIName().lower().startswith("sysv")
 
     def _resolve_fullpath(self, spec: lldb.SBFileSpec) -> str:
         """

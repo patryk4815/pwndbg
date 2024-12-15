@@ -20,6 +20,7 @@ def load_aglib():
     import pwndbg.aglib.elf
     import pwndbg.aglib.file
     import pwndbg.aglib.heap
+    import pwndbg.aglib.kernel
     import pwndbg.aglib.memory
     import pwndbg.aglib.nearpc
     import pwndbg.aglib.next
@@ -30,6 +31,7 @@ def load_aglib():
     import pwndbg.aglib.remote
     import pwndbg.aglib.stack
     import pwndbg.aglib.strings
+    import pwndbg.aglib.symbol
     import pwndbg.aglib.typeinfo
     import pwndbg.aglib.vmmap
 

@@ -10,8 +10,11 @@ from argparse import RawTextHelpFormatter
 from shlex import quote
 
 import pwndbg
+import pwndbg.aglib.arch
 import pwndbg.aglib.elf
 import pwndbg.aglib.proc
+import pwndbg.aglib.regs
+import pwndbg.aglib.symbol
 import pwndbg.color.message as M
 import pwndbg.commands
 import pwndbg.dbg
@@ -26,6 +29,11 @@ def breakpoint_at_entry():
     addr = int(pwndbg.aglib.elf.entry())
     if not addr:
         print(M.error("No entry address found for the binary."))
+        return
+
+    if int(pwndbg.aglib.regs.pc) == addr:
+        # Skip setting the breakpoint because we are already at the entry point.
+        # This occurs when execution started with `starti` or `run -s`.
         return
 
     proc = pwndbg.dbg.selected_inferior()
@@ -76,7 +84,7 @@ def start(args=None) -> None:
     symbols = ["main", "_main", "start", "_start", "init", "_init"]
 
     for symbol in symbols:
-        address = pwndbg.dbg.selected_inferior().symbol_address_from_name(symbol)
+        address = pwndbg.aglib.symbol.lookup_symbol_addr(symbol)
         if not address:
             continue
 

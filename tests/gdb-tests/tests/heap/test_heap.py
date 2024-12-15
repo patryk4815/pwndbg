@@ -7,6 +7,7 @@ import pytest
 
 import pwndbg.aglib.heap
 import pwndbg.aglib.memory
+import pwndbg.aglib.symbol
 import pwndbg.aglib.typeinfo
 import pwndbg.dbg
 import tests
@@ -284,7 +285,7 @@ class mock_for_heuristic:
         self.saved_func = pwndbg.dbg.selected_inferior
 
     def __enter__(self):
-        def mock_symbol_address_from_name(original):
+        def mock_lookup_symbol(original):
             def _mock(symbol, *args, **kwargs):
                 if self.mock_all:
                     return None
@@ -298,9 +299,7 @@ class mock_for_heuristic:
         def mock_interior(original):
             def _mock(*args, **kwargs):
                 inst = original(*args, **kwargs)
-                inst.symbol_address_from_name = mock_symbol_address_from_name(
-                    inst.symbol_address_from_name
-                )
+                inst.lookup_symbol = mock_lookup_symbol(inst.lookup_symbol)
                 return inst
 
             return _mock
@@ -320,7 +319,7 @@ def test_main_arena_heuristic(start_binary):
     gdb.execute("continue")
 
     # Use the debug symbol to get the address of `main_arena`
-    main_arena_addr_via_debug_symbol = pwndbg.dbg.selected_inferior().symbol_address_from_name(
+    main_arena_addr_via_debug_symbol = pwndbg.aglib.symbol.lookup_symbol_addr(
         "main_arena", prefer_static=True
     )
 
@@ -349,9 +348,7 @@ def test_mp_heuristic(start_binary):
     gdb.execute("continue")
 
     # Use the debug symbol to get the address of `mp_`
-    mp_addr_via_debug_symbol = pwndbg.dbg.selected_inferior().symbol_address_from_name(
-        "mp_", prefer_static=True
-    )
+    mp_addr_via_debug_symbol = pwndbg.aglib.symbol.lookup_symbol_addr("mp_", prefer_static=True)
 
     # Check if we can get the address of `mp_` from debug symbols and the struct of `mp_` is correct
     assert pwndbg.aglib.heap.current.mp is not None
@@ -385,7 +382,7 @@ def test_thread_cache_heuristic(start_binary, is_multi_threaded):
         assert pwndbg.dbg.selected_thread().index() == 2
 
     # Use the debug symbol to find the address of `thread_cache`
-    tcache_addr_via_debug_symbol = pwndbg.dbg.selected_inferior().symbol_address_from_name(
+    tcache_addr_via_debug_symbol = pwndbg.aglib.symbol.lookup_symbol_addr(
         "tcache", prefer_static=True
     )
     thread_cache_addr_via_debug_symbol = pwndbg.aglib.memory.u(tcache_addr_via_debug_symbol)
@@ -429,7 +426,7 @@ def test_thread_arena_heuristic(start_binary, is_multi_threaded):
         assert pwndbg.dbg.selected_thread().index() == 2
 
     # Use the debug symbol to find the value of `thread_arena`
-    thread_arena_via_debug_symbol = pwndbg.dbg.selected_inferior().symbol_address_from_name(
+    thread_arena_via_debug_symbol = pwndbg.aglib.symbol.lookup_symbol_addr(
         "thread_arena", prefer_static=True
     )
     assert thread_arena_via_debug_symbol is not None
@@ -459,7 +456,7 @@ def test_global_max_fast_heuristic(start_binary):
     gdb.execute("continue")
 
     # Use the debug symbol to find the address of `global_max_fast`
-    global_max_fast_addr_via_debug_symbol = pwndbg.dbg.selected_inferior().symbol_address_from_name(
+    global_max_fast_addr_via_debug_symbol = pwndbg.aglib.symbol.lookup_symbol_addr(
         "global_max_fast", prefer_static=True
     )
     assert global_max_fast_addr_via_debug_symbol is not None

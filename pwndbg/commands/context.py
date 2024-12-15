@@ -24,6 +24,7 @@ import pwndbg.aglib.arch
 import pwndbg.aglib.disasm
 import pwndbg.aglib.nearpc
 import pwndbg.aglib.regs
+import pwndbg.aglib.symbol
 import pwndbg.arguments
 import pwndbg.chain
 import pwndbg.color
@@ -1081,7 +1082,7 @@ def context_backtrace(with_banner=True, target=sys.stdout, width=None):
         prefix = bt_prefix if frame == this_frame else " " * len(bt_prefix)
         prefix = f" {c.prefix(prefix)}"
         addrsz = c.address(pwndbg.ui.addrsz(frame.pc()))
-        symbol = c.symbol(pwndbg.dbg.selected_inferior().symbol_name_at_address(int(frame.pc())))
+        symbol = c.symbol(pwndbg.aglib.symbol.resolve_addr(int(frame.pc())))
         if symbol:
             addrsz = addrsz + " " + symbol
         line = map(str, (prefix, c.frame_label("%s%i" % (backtrace_frame_label, i)), addrsz))
@@ -1195,7 +1196,7 @@ def context_threads(with_banner=True, target=sys.stdout, width=None):
             pc = gdb.selected_frame().pc()
 
             pc_colored = M.get(pc)
-            symbol = pwndbg.gdblib.symbol.get(pc)
+            symbol = pwndbg.aglib.symbol.resolve_addr(int(pc))
 
             line += f"{pc_colored}"
             if symbol:

@@ -3,22 +3,24 @@ from __future__ import annotations
 from re import match
 from re import search
 from struct import unpack_from
+from typing import Dict
+from typing import Tuple
 
 from pwnlib.util.packing import p16
 from pwnlib.util.packing import u32
 from pwnlib.util.packing import u64
 
 import pwndbg.aglib
+import pwndbg.aglib.kernel
 import pwndbg.aglib.memory
 import pwndbg.color.message as M
 import pwndbg.commands
-import pwndbg.gdblib.kernel
 import pwndbg.lib.cache
 import pwndbg.search
 
 
 @pwndbg.lib.cache.cache_until("start")
-def get():
+def get() -> Dict[str, Tuple[int, str]]:
     ks = Kallsyms()
     return ks.kallsyms
 
@@ -39,14 +41,14 @@ class Kallsyms:
     """
 
     def __init__(self):
-        self.kallsyms = {}
-        self.kbase = pwndbg.gdblib.kernel.kbase()
+        self.kallsyms: Dict[str, Tuple[int, str]] = {}
+        self.kbase = pwndbg.aglib.kernel.kbase()
 
-        mapping = pwndbg.gdblib.kernel.get_first_kernel_ro()
+        mapping = pwndbg.aglib.kernel.get_first_kernel_ro()
         self.r_base = mapping.vaddr
         self.kernel_ro_mem = pwndbg.aglib.memory.read(mapping.vaddr, mapping.memsz)
 
-        self.kernel_version = pwndbg.gdblib.kernel.krelease()
+        self.kernel_version = pwndbg.aglib.kernel.krelease()
         self.is_offsets = False
 
         self.rbase_offset = 0

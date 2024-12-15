@@ -3,14 +3,13 @@ from __future__ import annotations
 import argparse
 import logging
 
-import gdb
-
 import pwndbg
 import pwndbg.aglib.memory
+import pwndbg.aglib.symbol
 import pwndbg.commands
+from pwndbg.aglib.kernel import per_cpu
+from pwndbg.aglib.kernel.macros import for_each_entry
 from pwndbg.commands import CommandCategory
-from pwndbg.gdblib.kernel import per_cpu
-from pwndbg.gdblib.kernel.macros import for_each_entry
 
 log = logging.getLogger(__name__)
 
@@ -21,10 +20,14 @@ parser.add_argument("zone", type=int, nargs="?", help="")
 
 
 def print_zone(zone: int, list_num=None) -> None:
+    contig_value = pwndbg.aglib.symbol.lookup_symbol("contig_page_data")
+    if not contig_value:
+        print("WARNING: Symbol 'contig_page_data' not found")
+        return
+
     print(f"Zone {zone}")
-    pageset_addr = per_cpu(
-        gdb.lookup_global_symbol("contig_page_data").value()["node_zones"][zone]["pageset"]
-    )
+    contig_value = contig_value.dereference()
+    pageset_addr = per_cpu(contig_value["node_zones"][zone]["pageset"])
     pageset = pwndbg.aglib.memory.get_typed_pointer_value("struct per_cpu_pageset", pageset_addr)
     pcp = pageset["pcp"]
     print("count: ", pcp["count"])
@@ -34,7 +37,7 @@ def print_zone(zone: int, list_num=None) -> None:
         print(f"pcp.lists[{i}]:")
 
         count = 0
-        for e in for_each_entry(dbg_value_to_gdb(pcp["lists"][i]), "struct page", "lru"):
+        for e in for_each_entry(pcp["lists"][i], "struct page", "lru"):
             count += 1
             print(e)
 
@@ -44,13 +47,6 @@ def print_zone(zone: int, list_num=None) -> None:
             print(f"{count} entries")
 
         print("")
-
-
-def dbg_value_to_gdb(d: pwndbg.dbg_mod.Value) -> gdb.Value:
-    from pwndbg.dbg.gdb import GDBValue
-
-    assert isinstance(d, GDBValue)
-    return d.inner
 
 
 @pwndbg.commands.ArgparsedCommand(parser, category=CommandCategory.KERNEL)

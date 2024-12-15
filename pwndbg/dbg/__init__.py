@@ -155,7 +155,44 @@ class Registers:
         raise NotImplementedError()
 
 
+class SymbolLookupType(Enum):
+    """
+    Enum representing types of symbol lookups for filtering symbol searches.
+
+    Attributes:
+    - ANY: Represents searching for any symbol type (default).
+    - FUNCTION: Represents searching specifically for function symbols.
+    - VARIABLE: Represents searching specifically for variable symbols.
+    """
+
+    ANY = 1
+    FUNCTION = 2
+    VARIABLE = 3
+
+
 class Frame:
+    def lookup_symbol(
+        self,
+        name: str,
+        *,
+        type: SymbolLookupType = SymbolLookupType.ANY,
+    ) -> Value | None:
+        """
+        Looks up and returns the address of a symbol in current frame by its name.
+
+        Parameters:
+        - name (str): The name of the symbol to look up.
+        - type (SymbolLookupType, optional): The type of symbol to search for. Defaults
+          to SymbolLookupType.ANY.
+
+        Returns:
+        - pwndbg.dbg_mod.Value | None: The value of the symbol if found, or None if not found.
+
+        Raises:
+        - pwndbg.dbg_mod.Error: If symbol name contains invalid characters
+        """
+        raise NotImplementedError()
+
     def evaluate_expression(self, expression: str, lock_scheduler: bool = False) -> Value:
         """
         Evaluate the given expression in the context of this frame, and
@@ -410,11 +447,31 @@ class Process:
         """
         raise NotImplementedError()
 
-    def symbol_address_from_name(self, name: str, prefer_static: bool = False) -> int | None:
+    def lookup_symbol(
+        self,
+        name: str,
+        *,
+        prefer_static: bool = False,
+        type: SymbolLookupType = SymbolLookupType.ANY,
+        objfile_endswith: str | None = None,
+    ) -> Value | None:
         """
-        Returns the address of a symbol, given its name. Optionally, the user
-        may specify that they want to prioritize symbols in the static block, if
-        supported by the debugger.
+        Looks up and returns the address of a symbol by its name.
+
+        Parameters:
+        - name (str): The name of the symbol to look up.
+        - prefer_static (bool, optional): If True, prioritize symbols in the static block,
+          if supported by the debugger. Defaults to False.
+        - type (SymbolLookupType, optional): The type of symbol to search for. Defaults
+          to SymbolLookupType.ANY.
+        - objfile_endswith (str | None, optional): If specified, limits the search to the
+          first object file whose name ends with the provided string.
+
+        Returns:
+        - pwndbg.dbg_mod.Value | None: The value of the symbol if found, or None if not found.
+
+        Raises:
+        - pwndbg.dbg_mod.Error: If no object file matching the `objfile_endswith` pattern is found.
         """
         raise NotImplementedError()
 
@@ -548,6 +605,7 @@ class TypeCode(Enum):
     UNION = 5
     INT = 6
     ENUM = 7
+    FUNC = 8
 
 
 class TypeField:
@@ -584,20 +642,46 @@ class Type:
     """
 
     @property
-    def name(self) -> str:
+    def name_identifier(self) -> str | None:
         """
-        Returns the name of this type, eg:
+        Returns the identifier of this type, eg:
+        - someStructName
+        - someEnumName
+        - someTypedefName
+
+        Returns None if the type is anonymous or does not have a name, such as:
+        - Anonymous structs
+        - Anonymous Typedefs
+        - Basic types like char[], void, etc.
+        """
+        raise NotImplementedError()
+
+    @property
+    def name_to_human_readable(self) -> str:
+        """
+        Returns the human friendly name of this type, eg:
         - char [16]
         - int
         - char *
         - void *
+        - fooStructName
+        - barEnumName
+        - barTypedefName
+
+        This function is not standardized, may return different names in gdb/lldb, eg:
+        gdb: `char [16]` or `char [50]` or `struct {...}`
+        lldb: `char[16]` or `char[]`    or `(anonymous struct)`
+
+        You should not use this function. Only for human eyes.
         """
+        raise NotImplementedError()
 
     @property
     def sizeof(self) -> int:
         """
         The size of this type, in bytes.
         """
+        raise NotImplementedError()
 
     @property
     def alignof(self) -> int:
@@ -613,7 +697,19 @@ class Type:
         """
         raise NotImplementedError()
 
-    def fields(self) -> List[TypeField] | None:
+    def func_arguments(self) -> List[Type] | None:
+        """
+        Returns a list of function arguments type.
+
+        Returns:
+            List[Type] | None: The function arguments type, or None if debug information is missing.
+
+        Raises:
+            TypeError: If called on an unsupported type.
+        """
+        raise NotImplementedError()
+
+    def fields(self) -> List[TypeField]:
         """
         List of all fields in this type, if it is a structured type.
         """

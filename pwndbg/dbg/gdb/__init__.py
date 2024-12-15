@@ -91,6 +91,28 @@ class GDBFrame(pwndbg.dbg_mod.Frame):
         self.inner = inner
 
     @override
+    def lookup_symbol(
+        self,
+        name: str,
+        *,
+        type: pwndbg.dbg_mod.SymbolLookupType = pwndbg.dbg_mod.SymbolLookupType.ANY,
+    ) -> pwndbg.dbg_mod.Value | None:
+        from pwndbg.dbg.gdb.symbol import Domain
+        from pwndbg.dbg.gdb.symbol import lookup_frame_symbol
+
+        domain = {
+            pwndbg.dbg_mod.SymbolLookupType.ANY: Domain.ANY,
+            pwndbg.dbg_mod.SymbolLookupType.VARIABLE: Domain.VARIABLE,
+            pwndbg.dbg_mod.SymbolLookupType.FUNCTION: Domain.FUNCTION,
+        }[type]
+        try:
+            if (val := lookup_frame_symbol(name, domain=domain)) is not None:
+                return GDBValue(val)
+        except gdb.error as e:
+            raise pwndbg.dbg_mod.Error(e)
+        return None
+
+    @override
     def evaluate_expression(
         self, expression: str, lock_scheduler: bool = False
     ) -> pwndbg.dbg_mod.Value:
@@ -573,21 +595,40 @@ class GDBProcess(pwndbg.dbg_mod.Process):
 
     @override
     def symbol_name_at_address(self, address: int) -> str | None:
-        import pwndbg.gdblib.symbol
+        from pwndbg.dbg.gdb.symbol import resolve_addr
 
-        return pwndbg.gdblib.symbol.get(address) or None
+        return resolve_addr(address) or None
 
     @override
-    def symbol_address_from_name(self, name: str, prefer_static: bool = False) -> int | None:
-        import pwndbg.gdblib.symbol
+    def lookup_symbol(
+        self,
+        name: str,
+        *,
+        prefer_static: bool = False,
+        type: pwndbg.dbg_mod.SymbolLookupType = pwndbg.dbg_mod.SymbolLookupType.ANY,
+        objfile_endswith: str | None = None,
+    ) -> pwndbg.dbg_mod.Value | None:
+        from pwndbg.dbg.gdb.symbol import Domain
+        from pwndbg.dbg.gdb.symbol import lookup_symbol
 
+        domain = {
+            pwndbg.dbg_mod.SymbolLookupType.ANY: Domain.ANY,
+            pwndbg.dbg_mod.SymbolLookupType.VARIABLE: Domain.VARIABLE,
+            pwndbg.dbg_mod.SymbolLookupType.FUNCTION: Domain.FUNCTION,
+        }[type]
         try:
-            static = None
-            if prefer_static:
-                static = pwndbg.gdblib.symbol.static_linkage_symbol_address(name)
-            return static or pwndbg.gdblib.symbol.address(name) or None
-        except gdb.error:
-            raise pwndbg.dbg_mod.Error()
+            if (
+                val := lookup_symbol(
+                    name,
+                    prefer_static=prefer_static,
+                    domain=domain,
+                    objfile_endswith=objfile_endswith,
+                )
+            ) is not None:
+                return GDBValue(val)
+        except gdb.error as e:
+            raise pwndbg.dbg_mod.Error(e)
+        return None
 
     @override
     def types_with_name(self, name: str) -> Sequence[pwndbg.dbg_mod.Type]:
@@ -907,6 +948,9 @@ class GDBType(pwndbg.dbg_mod.Type):
         gdb.TYPE_CODE_TYPEDEF: pwndbg.dbg_mod.TypeCode.TYPEDEF,
         gdb.TYPE_CODE_PTR: pwndbg.dbg_mod.TypeCode.POINTER,
         gdb.TYPE_CODE_ARRAY: pwndbg.dbg_mod.TypeCode.ARRAY,
+        gdb.TYPE_CODE_FUNC: pwndbg.dbg_mod.TypeCode.FUNC,
+        # TODO: support `TYPE_CODE_METHOD` differently later?
+        gdb.TYPE_CODE_METHOD: pwndbg.dbg_mod.TypeCode.FUNC,
     }
 
     def __init__(self, inner: gdb.Type):
@@ -921,7 +965,17 @@ class GDBType(pwndbg.dbg_mod.Type):
 
     @property
     @override
-    def name(self) -> str:
+    def name_identifier(self) -> str | None:
+        if not self.inner.name:
+            return None
+        return self.inner.name
+
+    @property
+    @override
+    def name_to_human_readable(self) -> str:
+        if self.inner.name:
+            # If named struct/enum/typedef/etc
+            return self.inner.name
         return str(self.inner)
 
     @property
@@ -941,10 +995,26 @@ class GDBType(pwndbg.dbg_mod.Type):
         return GDBType.CODE_MAPPING[self.inner.code]
 
     @override
-    def fields(self) -> List[pwndbg.dbg_mod.TypeField] | None:
+    def func_arguments(self) -> List[pwndbg.dbg_mod.Type] | None:
+        if self.code != pwndbg.dbg_mod.TypeCode.FUNC:
+            raise TypeError("only available for function type")
+
+        # Type without debug info
+        # https://github.com/bminor/binutils-gdb/blob/c2dbc2929e87557f8bc030f6f010d67b19f99f12/gdb/gdbtypes.c#L6052-L6072
+        is_missing_debug_info = self.inner.name and self.inner.name.endswith(", no debug info>")
+        if is_missing_debug_info:
+            return None
+
+        args: List[gdb.Field] = self.inner.fields()
+        if not args:
+            return []
+        return [GDBType(arg.type) for arg in args]
+
+    @override
+    def fields(self) -> List[pwndbg.dbg_mod.TypeField]:
         return [
             pwndbg.dbg_mod.TypeField(
-                field.bitpos,
+                field.bitpos if hasattr(field, "bitpos") else 0,
                 field.name,
                 GDBType(field.type),
                 field.parent_type,
@@ -1007,6 +1077,12 @@ class GDBValue(pwndbg.dbg_mod.Value):
 
     @override
     def dereference(self) -> pwndbg.dbg_mod.Value:
+        if (
+            self.type.code == pwndbg.dbg_mod.TypeCode.POINTER
+            and self.type.target().code == pwndbg.dbg_mod.TypeCode.FUNC
+        ):
+            raise pwndbg.dbg_mod.Error("Dereference to function type is not allowed")
+
         return GDBValue(self.inner.dereference())
 
     @override
@@ -1036,20 +1112,14 @@ class GDBValue(pwndbg.dbg_mod.Value):
 
     @override
     def cast(self, type: pwndbg.dbg_mod.Type | Any) -> pwndbg.dbg_mod.Value:
-        # We let the consumers of this function just pass it a `gdb.Type`.
-        # This keeps us from breaking functionality under GDB until we have
-        # better support for type lookup under LLDB and start porting the
-        # commands that need this to the new API.
-        #
-        # FIXME: Remove sloppy `gdb.Type` exception in `GDBValue.cast()`
-        if isinstance(type, gdb.Type):
-            return GDBValue(self.inner.cast(type))
-
         assert isinstance(type, GDBType)
-        t: GDBType = type
+        type: GDBType = type
+
+        if type.code == pwndbg.dbg_mod.TypeCode.FUNC:
+            raise pwndbg.dbg_mod.Error("Cast to function type is not allowed, use pointer")
 
         try:
-            return GDBValue(self.inner.cast(t.inner))
+            return GDBValue(self.inner.cast(type.inner))
         except gdb.error as e:
             # GDB casts can fail.
             raise pwndbg.dbg_mod.Error(e)
@@ -1075,7 +1145,10 @@ class GDBValue(pwndbg.dbg_mod.Value):
             # so we nudge it a little.
             key = self.inner.type.fields()[key]
 
-        return GDBValue(self.inner[key])
+        try:
+            return GDBValue(self.inner[key])
+        except gdb.error as e:
+            raise pwndbg.dbg_mod.Error(e)
 
 
 def _gdb_event_class_from_event_type(ty: pwndbg.dbg_mod.EventType) -> Any:
@@ -1154,7 +1227,9 @@ class GDB(pwndbg.dbg_mod.Debugger):
         except gdb.error:
             pass
 
-        pwndbg.gdblib.tui.setup()
+        from pwndbg.gdblib.tui import setup as tui_setup
+
+        tui_setup()
 
         # Reading Comment file
         from pwndbg.commands import comments
@@ -1166,6 +1241,8 @@ class GDB(pwndbg.dbg_mod.Debugger):
         config_mod.init_params()
 
         prompt.show_hint()
+
+        from pwndbg.dbg.gdb import debug_sym
 
     @override
     def add_command(
