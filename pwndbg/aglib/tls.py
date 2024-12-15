@@ -32,14 +32,10 @@ def __call_pthread_self() -> int:
 
 
 def find_address_with_pthread_self() -> int:
-    """
-    Get the base address of the Thread Local Storage (TLS) for the current thread using
-    the pthread_self() function. The returned address points to the `struct tcbhead_t`,
-    which serves as the header for TLS and thread-specific metadata.
-    """
+    """Get the address of TLS with pthread_self()."""
     if pwndbg.aglib.arch.current not in ("x86-64", "i386", "arm", "aarch64"):
-        # Note: we should support aarch64 if it's possible that TPIDR_EL0 register can not be accessed.
         return 0
+
     result = __call_pthread_self()
     if result <= 0:
         # pthread_self() is not valid
@@ -58,8 +54,6 @@ def find_address_with_pthread_self() -> int:
         if pthread_type is None:
             # Type 'pthread' not found
             return 0
-
-        # sizeof(struct pthread)
         result += pthread_type.sizeof
 
     return result
@@ -76,6 +70,8 @@ def find_address_with_register() -> int:
     elif pwndbg.aglib.arch.current == "i386":
         return int(pwndbg.aglib.regs.gsbase)
     elif pwndbg.aglib.arch.current == "aarch64":
-        return int(pwndbg.aglib.regs.TPIDR_EL0 or 0)
+        # FIXME: cleanup/remove `TPIDR_EL0` register, it was renamed to `tpidr` since GDB13+
+        return int(pwndbg.aglib.regs.tpidr or pwndbg.aglib.regs.TPIDR_EL0 or 0)
+
     # TODO: is it possible that we can get the address of TLS with register on arm?
     return 0
