@@ -23,7 +23,8 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-PROMPT = message.prompt("pwndbg-lldb> ")
+# PROMPT = message.prompt("pwndbg-lldb> ")
+PROMPT = "\001\x1b[31m\002\001\x1b[1m\002pwndbg-lldb> \001\x1b[0m\002"
 HISTORY_FILE = os.path.expanduser("~/.pwndbg_history")
 
 complete_values = lldb.SBStringList()
