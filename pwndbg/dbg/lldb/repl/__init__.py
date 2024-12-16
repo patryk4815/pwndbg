@@ -499,7 +499,8 @@ def _get_target_arch(debugger: lldb.SBDebugger, filepath: str) -> str | None:
         return None
     triple = target.triple
     debugger.DeleteTarget(target)
-    return triple.split("-")[0]
+    # return triple.split("-")[0]
+    return triple
 
 
 def target_create(args: List[str], dbg: LLDB) -> None:
@@ -541,7 +542,7 @@ def target_create(args: List[str], dbg: LLDB) -> None:
 
     # Create the target with the debugger.
     error = lldb.SBError()
-    target: lldb.SBTarget = dbg.debugger.CreateTarget(args.filename, None, args.platform, True, error)
+    target: lldb.SBTarget = dbg.debugger.CreateTarget(args.filename, _get_target_arch(dbg.debugger, args.filename), args.platform, True, error)
     if not error.success or not target.IsValid():
         print(message.error(f"could not create target for '{args.filename}': {error.description}"))
         return
