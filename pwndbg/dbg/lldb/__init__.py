@@ -1057,7 +1057,7 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
 
         if not remote.IsValid():
             raise pwndbg.dbg_mod.Error(f"LLDB considers the path '{remote_path}' invalid")
-        if local.IsValid():
+        if not local.IsValid():
             raise pwndbg.dbg_mod.Error(f"LLDB considers the path '{local_path} invalid'")
 
         error = platform.Get(remote, local)

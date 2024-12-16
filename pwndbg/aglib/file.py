@@ -71,7 +71,7 @@ def get_file(path: str, try_local_path: bool = False) -> str:
         return os.path.join(qemu_root, path)
 
     elif pwndbg.aglib.remote.is_remote():
-        if not pwndbg.aglib.qemu.is_qemu():
+        if not pwndbg.aglib.qemu.is_qemu_kernel():
             if try_local_path and not has_target_prefix and os.path.exists(local_path):
                 return local_path
             local_path = tempfile.mktemp(dir=remote_files_dir())
