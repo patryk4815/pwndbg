@@ -493,6 +493,15 @@ target_create_unsupported = [
 ]
 
 
+def _get_target_arch(debugger: lldb.SBDebugger, filepath: str) -> str | None:
+    target: lldb.SBTarget = debugger.CreateTarget(filepath)
+    if not target.IsValid():
+        return None
+    triple = target.triple
+    debugger.DeleteTarget(target)
+    return triple.split("-")[0]
+
+
 def target_create(args: List[str], dbg: LLDB) -> None:
     """
     Creates a new target, registers it with the Pwndbg LLDB implementation, and
@@ -511,16 +520,18 @@ def target_create(args: List[str], dbg: LLDB) -> None:
         return
 
     if args.platform and args.platform not in {"qemu-user"}:
-        print(
-            message.error(
-                "Pwndbg does currently only support platforms: qemu-user, host"
-            )
-        )
-        # for idx in range(dbg.debugger.GetNumAvailablePlatforms()):
-        #     name = str(dbg.debugger.GetAvailablePlatformInfoAtIndex(idx).GetValueForKey('name'))
+        print(message.error("Pwndbg does currently support platforms: qemu-user"))
         return
 
     if args.platform:
+        # if args.platform == "qemu-user":
+        #     arch = args.arch or _get_target_arch(dbg.debugger, args.filename)
+        #     if not arch:
+        #         print(message.error(f"could not detect arch for '{args.filename}'"))
+        #         return
+        #     # Without setting it qemu-user don't work ;(
+        #     dbg._execute_lldb_command(f"settings set platform.plugin.qemu-user.architecture {arch}")
+
         dbg.debugger.SetCurrentPlatform(args.platform)
 
     if args.sysroot:
@@ -530,31 +541,11 @@ def target_create(args: List[str], dbg: LLDB) -> None:
         dbg.debugger.SetDefaultArchitecture(args.arch)
 
     # Create the target with the debugger.
-    target: lldb.SBTarget = dbg.debugger.CreateTarget(args.filename)
-    if not target.IsValid():
-        print(message.error(f"could not create target for '{args.filename}'"))
+    error = lldb.SBError()
+    target: lldb.SBTarget = dbg.debugger.CreateTarget(args.filename, '', None, True, error)
+    if not error.success or not target.IsValid():
+        print(message.error(f"could not create target for '{args.filename}': {error.description}"))
         return
-    # triple = target.triple
-    # dbg.debugger.DeleteTarget(target)
-    #
-    # #     # CreateTarget(SBDebugger
-    # #     # self, char
-    # #     # const * filename, char
-    # #     # const * target_triple, char
-    # #     # const * platform_name, bool
-    # #     # add_dependent_modules, SBError
-    # #     # error) -> SBTarget
-    # #     # #
-    #
-    # error = lldb.SBError()
-    # target = dbg.debugger.CreateTarget(args.filename, triple, args.platform, True, error)
-    # if not error.success or not target.IsValid():
-    #     print(
-    #         message.error(
-    #             f"error: could not automatically create target for 'process connect': {error.description}"
-    #         )
-    #     )
-    #     return
 
     dbg.debugger.SetSelectedTarget(target)
     print(f"Current executable set to '{args.filename}' ({target.triple.split('-')[0]})")
@@ -690,20 +681,19 @@ def process_connect(driver: ProcessDriver, relay: EventRelay, args: List[str], d
         # The LLDB command line sets the default triple based on the
         # architecture value set in the `target.default-arch` setting. We do the
         # same.
-        result = lldb.SBCommandReturnObject()
-        dbg.debugger.GetCommandInterpreter().HandleCommand(
-            "settings show target.default-arch", result, False
-        )
+        try:
+            result = dbg._execute_lldb_command("settings show target.default-arch")
 
-        arch = ""
-        if result.GetErrorSize() == 0:
             # The result of this command has the following form:
             #
             # (lldb) settings show target.default-arch
             # target.default-arch (arch) = <value>
             #
             # Where <value> may be empty, for no value.
-            arch = result.GetOutput().split("=")[1].strip()
+            arch = result.split("=")[1].strip()
+        except pwndbg.dbg_mod.Error:
+            arch = ""
+
         triple = f"{arch}-unknown-unknown" if len(arch) > 0 else None
 
         target = dbg.debugger.CreateTarget(None, triple, None, True, error)
