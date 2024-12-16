@@ -531,7 +531,6 @@ def target_create(args: List[str], dbg: LLDB) -> None:
         #         return
         #     # Without setting it qemu-user don't work ;(
         #     dbg._execute_lldb_command(f"settings set platform.plugin.qemu-user.architecture {arch}")
-
         dbg.debugger.SetCurrentPlatform(args.platform)
 
     if args.sysroot:
@@ -542,7 +541,7 @@ def target_create(args: List[str], dbg: LLDB) -> None:
 
     # Create the target with the debugger.
     error = lldb.SBError()
-    target: lldb.SBTarget = dbg.debugger.CreateTarget(args.filename, None, None, True, error)
+    target: lldb.SBTarget = dbg.debugger.CreateTarget(args.filename, None, args.platform, True, error)
     if not error.success or not target.IsValid():
         print(message.error(f"could not create target for '{args.filename}': {error.description}"))
         return
