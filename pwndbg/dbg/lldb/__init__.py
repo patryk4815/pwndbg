@@ -1696,7 +1696,7 @@ class LLDB(pwndbg.dbg_mod.Debugger):
 
         self.suspended_events = {a: False for a in pwndbg.dbg_mod.EventType}
 
-        debugger = args[0]
+        debugger: lldb.SBDebugger = args[0]
         assert (
             debugger.__class__ is lldb.SBDebugger
         ), "lldbinit.py should call setup() with an lldb.SBDebugger object"

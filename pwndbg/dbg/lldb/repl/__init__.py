@@ -484,12 +484,9 @@ target_create_ap.add_argument("-s", "--symfile")
 target_create_ap.add_argument("-v", "--version")
 target_create_ap.add_argument("filename")
 target_create_unsupported = [
-    "sysroot",
-    "arch",
     "build",
     "core",
     "no-dependents",
-    "platform",
     "remote-file",
     "symfile",
     "version",
@@ -513,6 +510,16 @@ def target_create(args: List[str], dbg: LLDB) -> None:
         )
         return
 
+    if args.platform and args.platform not in {"qemu-user", "host"}:
+        print(
+            message.error(
+                "Pwndbg does currently only support platforms: qemu-user, host"
+            )
+        )
+        # for idx in range(dbg.debugger.GetNumAvailablePlatforms()):
+        #     name = str(dbg.debugger.GetAvailablePlatformInfoAtIndex(idx).GetValueForKey('name'))
+        return
+
     # Create the target with the debugger.
     target = dbg.debugger.CreateTarget(args.filename)
     if not target.IsValid():
@@ -520,6 +527,14 @@ def target_create(args: List[str], dbg: LLDB) -> None:
         return
 
     dbg.debugger.SetSelectedTarget(target)
+    if args.platform:
+        dbg.debugger.SetCurrentPlatform(args.platform)
+
+    if args.sysroot:
+        dbg.debugger.SetCurrentPlatformSDKRoot(args.sysroot)
+
+    if args.arch:
+        dbg.debugger.SetDefaultArchitecture(args.arch)
 
     print(f"Current executable set to '{args.filename}' ({target.triple.split('-')[0]})")
     return
