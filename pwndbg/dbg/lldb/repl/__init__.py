@@ -493,13 +493,12 @@ target_create_unsupported = [
 ]
 
 
-def _get_target_arch(debugger: lldb.SBDebugger, filepath: str) -> str | None:
+def _get_target_triple(debugger: lldb.SBDebugger, filepath: str) -> str | None:
     target: lldb.SBTarget = debugger.CreateTarget(filepath)
     if not target.IsValid():
         return None
     triple = target.triple
     debugger.DeleteTarget(target)
-    # return triple.split("-")[0]
     return triple
 
 
@@ -524,25 +523,30 @@ def target_create(args: List[str], dbg: LLDB) -> None:
         print(message.error("Pwndbg does currently support platforms: qemu-user"))
         return
 
+    if args.arch:
+        dbg.debugger.SetDefaultArchitecture(args.arch)
+
+    triple = _get_target_triple(dbg.debugger, args.filename)
+    if not triple:
+        print(message.error(f"could not detect triple for '{args.filename}'"))
+        return
+
+    if args.platform == "qemu-user":
+        arch = triple.split("-")[0]
+        # Without setting it qemu-user don't work ;(
+        dbg._execute_lldb_command(f"settings set platform.plugin.qemu-user.architecture {arch}")
+
     if args.platform:
-        # if args.platform == "qemu-user":
-        #     arch = args.arch or _get_target_arch(dbg.debugger, args.filename)
-        #     if not arch:
-        #         print(message.error(f"could not detect arch for '{args.filename}'"))
-        #         return
-        #     # Without setting it qemu-user don't work ;(
-        #     dbg._execute_lldb_command(f"settings set platform.plugin.qemu-user.architecture {arch}")
         dbg.debugger.SetCurrentPlatform(args.platform)
 
     if args.sysroot:
         dbg.debugger.SetCurrentPlatformSDKRoot(args.sysroot)
 
-    if args.arch:
-        dbg.debugger.SetDefaultArchitecture(args.arch)
-
     # Create the target with the debugger.
     error = lldb.SBError()
-    target: lldb.SBTarget = dbg.debugger.CreateTarget(args.filename, _get_target_arch(dbg.debugger, args.filename), args.platform, True, error)
+    target: lldb.SBTarget = dbg.debugger.CreateTarget(
+        args.filename, triple, args.platform, True, error
+    )
     if not error.success or not target.IsValid():
         print(message.error(f"could not create target for '{args.filename}': {error.description}"))
         return
