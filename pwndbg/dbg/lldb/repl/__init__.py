@@ -534,27 +534,27 @@ def target_create(args: List[str], dbg: LLDB) -> None:
     if not target.IsValid():
         print(message.error(f"could not create target for '{args.filename}'"))
         return
-    triple = target.triple
-    dbg.debugger.DeleteTarget(target)
-
-    #     # CreateTarget(SBDebugger
-    #     # self, char
-    #     # const * filename, char
-    #     # const * target_triple, char
-    #     # const * platform_name, bool
-    #     # add_dependent_modules, SBError
-    #     # error) -> SBTarget
-    #     # #
-
-    error = lldb.SBError()
-    target = dbg.debugger.CreateTarget(args.filename, triple, args.platform, True, error)
-    if not error.success or not target.IsValid():
-        print(
-            message.error(
-                f"error: could not automatically create target for 'process connect': {error.description}"
-            )
-        )
-        return
+    # triple = target.triple
+    # dbg.debugger.DeleteTarget(target)
+    #
+    # #     # CreateTarget(SBDebugger
+    # #     # self, char
+    # #     # const * filename, char
+    # #     # const * target_triple, char
+    # #     # const * platform_name, bool
+    # #     # add_dependent_modules, SBError
+    # #     # error) -> SBTarget
+    # #     # #
+    #
+    # error = lldb.SBError()
+    # target = dbg.debugger.CreateTarget(args.filename, triple, args.platform, True, error)
+    # if not error.success or not target.IsValid():
+    #     print(
+    #         message.error(
+    #             f"error: could not automatically create target for 'process connect': {error.description}"
+    #         )
+    #     )
+    #     return
 
     dbg.debugger.SetSelectedTarget(target)
     print(f"Current executable set to '{args.filename}' ({target.triple.split('-')[0]})")
