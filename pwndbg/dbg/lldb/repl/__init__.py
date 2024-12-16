@@ -510,7 +510,7 @@ def target_create(args: List[str], dbg: LLDB) -> None:
         )
         return
 
-    if args.platform and args.platform not in {"qemu-user", "host"}:
+    if args.platform and args.platform not in {"qemu-user"}:
         print(
             message.error(
                 "Pwndbg does currently only support platforms: qemu-user, host"
@@ -533,6 +533,27 @@ def target_create(args: List[str], dbg: LLDB) -> None:
     target: lldb.SBTarget = dbg.debugger.CreateTarget(args.filename)
     if not target.IsValid():
         print(message.error(f"could not create target for '{args.filename}'"))
+        return
+    triple = target.triple
+    dbg.debugger.DeleteTarget(target)
+
+    #     # CreateTarget(SBDebugger
+    #     # self, char
+    #     # const * filename, char
+    #     # const * target_triple, char
+    #     # const * platform_name, bool
+    #     # add_dependent_modules, SBError
+    #     # error) -> SBTarget
+    #     # #
+
+    error = lldb.SBError()
+    target = dbg.debugger.CreateTarget(args.filename, triple, args.platform, True, error)
+    if not error.success or not target.IsValid():
+        print(
+            message.error(
+                f"error: could not automatically create target for 'process connect': {error.description}"
+            )
+        )
         return
 
     dbg.debugger.SetSelectedTarget(target)
@@ -689,7 +710,7 @@ def process_connect(driver: ProcessDriver, relay: EventRelay, args: List[str], d
         if not error.success or not target.IsValid():
             print(
                 message.error(
-                    "error: could not automatically create target for 'process connect': {error.description}"
+                    f"error: could not automatically create target for 'process connect': {error.description}"
                 )
             )
             return
@@ -704,7 +725,7 @@ def process_connect(driver: ProcessDriver, relay: EventRelay, args: List[str], d
     error = driver.connect(target, io_driver, args.remoteurl, "gdb-remote")
 
     if not error.success:
-        print(message.error("error: could not connect to remote process: {error.description}"))
+        print(message.error(f"error: could not connect to remote process: {error.description}"))
         if created_target:
             # Delete the target we previously created.
             assert dbg.debugger.DeleteTarget(
