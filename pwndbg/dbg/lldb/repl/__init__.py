@@ -520,13 +520,6 @@ def target_create(args: List[str], dbg: LLDB) -> None:
         #     name = str(dbg.debugger.GetAvailablePlatformInfoAtIndex(idx).GetValueForKey('name'))
         return
 
-    # Create the target with the debugger.
-    target = dbg.debugger.CreateTarget(args.filename)
-    if not target.IsValid():
-        print(message.error(f"could not create target for '{args.filename}'"))
-        return
-
-    dbg.debugger.SetSelectedTarget(target)
     if args.platform:
         dbg.debugger.SetCurrentPlatform(args.platform)
 
@@ -536,6 +529,13 @@ def target_create(args: List[str], dbg: LLDB) -> None:
     if args.arch:
         dbg.debugger.SetDefaultArchitecture(args.arch)
 
+    # Create the target with the debugger.
+    target: lldb.SBTarget = dbg.debugger.CreateTarget(args.filename)
+    if not target.IsValid():
+        print(message.error(f"could not create target for '{args.filename}'"))
+        return
+
+    dbg.debugger.SetSelectedTarget(target)
     print(f"Current executable set to '{args.filename}' ({target.triple.split('-')[0]})")
     return
 
