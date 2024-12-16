@@ -191,8 +191,9 @@ class LLDBFrame(pwndbg.dbg_mod.Frame):
                     # Run the command that sets the value of the register.
                     try:
                         self.proc.dbg._execute_lldb_command(f"register write {name} {val}")
-                    except pwndbg.dbg_mod.Error as error:
-                        if f"'{name}'" in str(error) and "not found" in str(error):
+                    except pwndbg.dbg_mod.Error as e:
+                        error = str(e)
+                        if f"'{name}'" in error and "not found" in error:
                             # Likely "error: Register not found for '{name}'"
                             return False
                         raise pwndbg.dbg_mod.Error(
@@ -1545,6 +1546,9 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
     @override
     def is_linux(self) -> bool:
         # LLDB will at most tell us if this is a SysV ABI process.
+        # Returns eg:
+        # - 'SysV-arm64'
+        # - 'ABIMacOSX_arm64'
         return self.target.GetABIName().lower().startswith("sysv")
 
     def _resolve_fullpath(self, spec: lldb.SBFileSpec) -> str:
@@ -1700,8 +1704,10 @@ class LLDB(pwndbg.dbg_mod.Debugger):
             result,
             False,
         )
-        if result.GetErrorSize() > 0:
-            raise pwndbg.dbg_mod.Error(result.GetError())
+        if not result.Succeeded():
+            if result.GetErrorSize() > 0:
+                raise pwndbg.dbg_mod.Error(result.GetError())
+            raise pwndbg.dbg_mod.Error("lldb command failed without error")
         return result.GetOutput()
 
     @override
