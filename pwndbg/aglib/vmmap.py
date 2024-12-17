@@ -13,6 +13,7 @@ from pt.machine import Machine
 import pwndbg
 import pwndbg.lib.cache
 import pwndbg.lib.memory
+import pwndbg.color.message as M
 
 if pwndbg.dbg.is_gdblib_available():
     # The code in pwndbg.gdblib.vmmap does _so much_ more than just getting the
@@ -145,8 +146,17 @@ def kernel_vmmap_via_page_tables() -> Tuple[pwndbg.lib.memory.Page, ...]:
     if not pwndbg.aglib.kernel.paging_enabled():
         return ()
 
-    machine_backend = QemuMachine()
-    retpages: List[pwndbg.lib.memory.Page] = []
+    try:
+        machine_backend = QemuMachine()
+    except PermissionError:
+        print(
+            M.error(
+                "Permission error when attempting to parse page tables with gdb-pt-dump.\n"
+                "Either change the kernel-vmmap setting, re-run GDB as root, or disable "
+                "`ptrace_scope` (`echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope`)"
+            )
+        )
+        return ()
 
     arch = pwndbg.aglib.arch.current
     if arch == "aarch64":
@@ -162,6 +172,7 @@ def kernel_vmmap_via_page_tables() -> Tuple[pwndbg.lib.memory.Page, ...]:
     p = PageTableDump(machine_backend, arch_backend)
     pages = p.arch_backend.parse_tables(p.cache, p.parser.parse_args(""))
 
+    retpages: List[pwndbg.lib.memory.Page] = []
     for page in pages:
         start = page.va
         size = page.page_size
