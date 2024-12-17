@@ -8,13 +8,8 @@ import pwndbg.aglib.symbol
 import pwndbg.aglib.typeinfo
 
 
-def offset_of(typename: str, fieldname: str) -> int:
-    dummy = pwndbg.aglib.memory.get_typed_pointer(typename, 0)
-    return int(dummy[fieldname].address)
-
-
 def container_of(ptr: int, typename: str, fieldname: str) -> pwndbg.dbg_mod.Value:
-    obj_addr = int(ptr) - offset_of(typename, fieldname)
+    obj_addr = int(ptr) - pwndbg.aglib.typeinfo.struct_offset(typename, fieldname)
     return pwndbg.aglib.memory.get_typed_pointer(typename, obj_addr)
 
 

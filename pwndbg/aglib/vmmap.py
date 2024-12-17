@@ -61,8 +61,6 @@ class QemuMachine(Machine):
 
     def read_physical_memory(self, physical_address: int, length: int) -> bytes:
         res = pwndbg.dbg.selected_inferior().send_monitor(f"gpa2hva {hex(physical_address)}")
-        # TODO powinno lepiej zwraca reposne
-        print("read_phisical_memory:", res)
 
         # It's not possible to pread large sizes, so let's break the request
         # into a few smaller ones.

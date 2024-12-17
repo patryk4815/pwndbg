@@ -80,6 +80,7 @@ class Kallsyms:
         self.names = self.find_names()
         self.kernel_addresses = self.get_kernel_addresses()
         self.parse_symbol_table()
+        print(M.info(f"Found {len(self.kallsyms)} ksymbols"))
 
     def find_token_table(self) -> int:
         """
