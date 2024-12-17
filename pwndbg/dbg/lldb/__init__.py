@@ -562,9 +562,11 @@ class LLDBValue(pwndbg.dbg_mod.Value):
 
     @override
     def __int__(self) -> int:
-        """
-        Logic is copied from lldb.value(self.inner).__int__()
-        """
+        # use unsigned in every pointer type
+        if self.type.code == pwndbg.dbg_mod.TypeCode.POINTER:
+            return self.inner.GetValueAsUnsigned()
+
+        # Logic is copied from lldb.value(self.inner).__int__()
         is_num, is_sign = lldb.is_numeric_type(
             self.inner.GetType().GetCanonicalType().GetBasicType()
         )
