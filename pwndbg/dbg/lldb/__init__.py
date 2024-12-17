@@ -951,7 +951,8 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
 
         # Second, try to do a binary search for the limit of the range.
         def test(s: int):
-            if s == 0:
+            # ReadMemory fail when passing size <= 0
+            if s <= 0:
                 return False
 
             b = self.process.ReadMemory(address, s, e)
