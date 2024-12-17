@@ -11,9 +11,9 @@ from typing import Tuple
 from pt.machine import Machine
 
 import pwndbg
+import pwndbg.color.message as M
 import pwndbg.lib.cache
 import pwndbg.lib.memory
-import pwndbg.color.message as M
 
 if pwndbg.dbg.is_gdblib_available():
     # The code in pwndbg.gdblib.vmmap does _so much_ more than just getting the

@@ -111,11 +111,14 @@ def struct_offset(type_name: str, field_name: str) -> int | None:
     if t is None:
         return None
 
-    return next((
-        int(f.bitpos / pwndbg.aglib.typeinfo.pvoid.sizeof)
-        for f in t.fields()
-        if f.name == field_name
-    ), None)
+    return next(
+        (
+            int(f.bitpos / pwndbg.aglib.typeinfo.pvoid.sizeof)
+            for f in t.fields()
+            if f.name == field_name
+        ),
+        None,
+    )
 
 
 def enum_member(type_name: str, member: str) -> int | None:

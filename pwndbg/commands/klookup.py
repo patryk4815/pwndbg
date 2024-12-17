@@ -11,8 +11,9 @@ parser = argparse.ArgumentParser(description="Lookup kernel symbols")
 
 parser.add_argument("symbol", type=str, help="Address or symbol name to lookup")
 
+
 def parse_to_addr(v: str) -> int:
-    if v.startswith('0x'):
+    if v.startswith("0x"):
         return int(v[2:], 16)
     try:
         return int(v, 16)

@@ -805,6 +805,7 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         # TODO: lepiej jakos?
         if regions.GetSize() == 0:
             from pwndbg.aglib.vmmap import kernel_vmmap_via_page_tables
+
             pages = kernel_vmmap_via_page_tables()
             return LLDBMemoryMap(list(pages))
 
