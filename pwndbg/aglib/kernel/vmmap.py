@@ -128,8 +128,14 @@ def kernel_vmmap_via_page_tables() -> Tuple[pwndbg.lib.memory.Page, ...]:
     elif arch == "rv64":
         arch_backend = PT_RiscV64_Backend(machine_backend)
     else:
-        # TODO: print warning, not crash? arch not support?
-        raise Exception(f"Unsupported arch. Message: {arch}")
+        print(
+            M.error(
+                f"The {pwndbg.aglib.arch.name} architecture does"
+                " not support the `vmmap_via_page_tables`.\n"
+                "Run `help show kernel-vmmap` for other options."
+            )
+        )
+        return ()
 
     p = PageTableDump(machine_backend, arch_backend)
     pages = p.arch_backend.parse_tables(p.cache, p.parser.parse_args(""))
@@ -152,7 +158,7 @@ def kernel_vmmap_via_page_tables() -> Tuple[pwndbg.lib.memory.Page, ...]:
 monitor_info_mem_not_warned = True
 
 
-# TODO: cache?
+@pwndbg.lib.cache.cache_until("stop")
 def kernel_vmmap_via_monitor_info_mem() -> Tuple[pwndbg.lib.memory.Page, ...]:
     """
     Returns Linux memory maps information by parsing `monitor info mem` output
