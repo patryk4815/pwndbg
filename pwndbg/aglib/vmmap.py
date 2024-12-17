@@ -29,14 +29,7 @@ if pwndbg.dbg.is_gdblib_available():
 
 @pwndbg.lib.cache.cache_until("start", "stop")
 def get() -> Tuple[pwndbg.lib.memory.Page, ...]:
-    if pwndbg.dbg.is_gdblib_available():
-        return pwndbg.gdblib.vmmap.get()
-
-    # TODO: lepiej przeniesc do `pwndbg.dbg`
-    pages = tuple(pwndbg.dbg.selected_inferior().vmmap().ranges())
-    if not pages:
-        return kernel_vmmap_via_page_tables()
-    return pages
+    return tuple(pwndbg.dbg.selected_inferior().vmmap().ranges())
 
 
 @pwndbg.lib.cache.cache_until("start", "stop")
