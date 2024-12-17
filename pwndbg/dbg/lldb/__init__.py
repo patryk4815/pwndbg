@@ -1080,6 +1080,16 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         # As of LLDB 18, there isn't a way for us to do this directly, so we
         # have to use the command. The implementation of the command calls into
         # private APIs.
+
+        # TODO: parse
+        # LLDB:
+        # Out[5]: '  packet: vFile:open:2f,0,0\nresponse: F-1,2\n'
+        # Out[4]: '  packet: $vFile:open:2f,0,0\nresponse: \nerror: UNIMPLEMENTED\n'
+        #
+        # GDB:
+        # Out[2]: 'sending: vFile:open:2f,0,0\nreceived: "F-1,2"\n'
+        # In [3]: inf.send_remote('$vFile:open:2f70726f632f3139343632372f6d617073,0,0#b2')
+        # Exception
         return self.dbg._execute_lldb_command(f"process plugin packet send {packet}")
 
     @override
@@ -1089,8 +1099,19 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         if not self._is_gdb_remote:
             raise RuntimeError("Called send_monitor() on a local process")
 
+        # TODO: poprawic
+        # In [3]: inf.send_remote('qRcmd,696e666f206d656d')
+        # Out[3]: '  packet: qRcmd,696e666f206d656d\nresponse: O756e6b6e6f776e20636f6d6d616e643a2027696e666f206d656d270d0a\n'
+        # In [83]: inf.send_monitor('gpa2hva 0x1000')
+        # Out[83]: 'Host virtual address for 0x1000 (virt.flash0) is 0xe2780fc01000\r\n  packet: qRcmd,6770613268766120307831303030\nresponse: OK\n'
+        # Response from `process plugin packet monitor {cmd}` is formated in ugly way
+        # So we use just `qRcmd`
+
         # Same as `send_remote()`.
-        return self.dbg._execute_lldb_command(f"process plugin packet monitor {cmd}")
+        res = self.dbg._execute_lldb_command(f"process plugin packet monitor {cmd}")
+        if (idx := res.index("\r\n  packet: ")) > -1:
+            return res[: idx + 2]  # +2 = plus newlines
+        return res
 
     @override
     def download_remote_file(self, remote_path: str, local_path: str) -> None:
@@ -1381,7 +1402,9 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
                     if cast_type is not None:
                         # Detect if we have proper symbol by size, we can't do better here
                         if cast_type.sizeof != resolved_size:
-                            print(f"WARNING: Symbol {sym_name} has invalid size (has:{cast_type.sizeof:02x}, needed:{resolved_size:02x}), should not happen")
+                            print(
+                                f"WARNING: Symbol {sym_name} has invalid size (has:{cast_type.sizeof:02x}, needed:{resolved_size:02x}), should not happen"
+                            )
 
                         # Cast to pointer, we are returning address at end ;)
                         cast_type = cast_type.pointer()
