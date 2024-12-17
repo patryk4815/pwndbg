@@ -15,12 +15,17 @@ from pt.pt_riscv64_parse import PT_RiscV64_Backend
 from pt.pt_x86_64_parse import PT_x86_64_Backend
 
 import pwndbg
+import pwndbg.aglib.arch
+import pwndbg.aglib.kernel
 import pwndbg.aglib.qemu
+import pwndbg.aglib.regs
 import pwndbg.color.message as M
 import pwndbg.lib.cache
 import pwndbg.lib.memory
 
 
+# Most of QemuMachine code was copied from:
+# https://github.com/martinradev/gdb-pt-dump/blob/21158ac3f9b36d0e5e0c86193e0ef018fc628e74/pt_gdb/pt_gdb.py#L11-L80
 class QemuMachine(Machine):
     def __init__(self):
         super().__init__()
@@ -123,6 +128,8 @@ def kernel_vmmap_via_page_tables() -> Tuple[pwndbg.lib.memory.Page, ...]:
     arch = pwndbg.aglib.arch.current
     if arch == "aarch64":
         arch_backend = PT_Aarch64_Backend(machine_backend)
+    elif arch == "i386" in arch:
+        arch_backend = PT_x86_64_Backend(machine_backend)
     elif arch == "x86-64" in arch:
         arch_backend = PT_x86_64_Backend(machine_backend)
     elif arch == "rv64":
@@ -198,8 +205,8 @@ def kernel_vmmap_via_monitor_info_mem() -> Tuple[pwndbg.lib.memory.Page, ...]:
             print(
                 M.error(
                     f"The {pwndbg.aglib.arch.name} architecture does"
-                    " not support the `monitor info mem` command. Run "
-                    "`help show kernel-vmmap` for other options."
+                    " not support the `monitor info mem` command.\n"
+                    "Run `help show kernel-vmmap` for other options."
                 )
             )
         return ()

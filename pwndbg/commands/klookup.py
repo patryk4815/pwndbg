@@ -29,9 +29,9 @@ def klookup(symbol: str) -> None:
     ksyms = pwndbg.aglib.kernel.kallsyms.get()
     try:
         symbol_addr = parse_to_addr(symbol)
-        for k, v in ksyms.items():
+        for ksym, v in ksyms.items():
             if v[0] == symbol_addr:
-                print(message.success(f"{k} = {symbol_addr:#x}"))
+                print(message.success(f"{symbol_addr:#x} = {ksym}"))
                 return
         print(message.error(f"No symbol found at {symbol_addr:#x}"))
     except ValueError:
@@ -41,6 +41,6 @@ def klookup(symbol: str) -> None:
                 continue
             found = True
             addr = v[0]
-            print(message.success(f"{ksym} = {addr:#x}"))
+            print(message.success(f"{addr:#x} = {ksym}"))
         if not found:
             print(message.error(f"No symbol found for {symbol}"))
