@@ -45,6 +45,8 @@ class Kallsyms:
         self.kbase = pwndbg.aglib.kernel.kbase()
 
         mapping = pwndbg.aglib.kernel.get_first_kernel_ro()
+        assert mapping is not None, "kernel memory mappings are missing"
+
         self.r_base = mapping.vaddr
         self.kernel_ro_mem = pwndbg.aglib.memory.read(mapping.vaddr, mapping.memsz)
 
