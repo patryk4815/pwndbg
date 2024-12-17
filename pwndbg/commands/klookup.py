@@ -34,8 +34,12 @@ def klookup(symbol: str) -> None:
                 return
         print(message.error(f"No symbol found at {symbol_addr:#x}"))
     except ValueError:
-        if symbol in ksyms:
-            addr = ksyms[symbol][0]
-            print(message.success(f"{symbol} = {addr:#x}"))
-        else:
+        found = False
+        for ksym, v in ksyms.items():
+            if symbol not in ksym:
+                continue
+            found = True
+            addr = v[0]
+            print(message.success(f"{ksym} = {addr:#x}"))
+        if not found:
             print(message.error(f"No symbol found for {symbol}"))
