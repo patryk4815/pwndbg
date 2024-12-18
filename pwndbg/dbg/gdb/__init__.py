@@ -1062,6 +1062,7 @@ class GDBType(pwndbg.dbg_mod.Type):
 
     @override
     def offsetof(self, field_name: str) -> int | None:
+        # In LLDB this code don't work
         value = pwndbg.dbg.selected_inferior().create_value(0, self.pointer())
         addr = value[field_name].address
         if addr is None:
