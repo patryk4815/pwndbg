@@ -119,10 +119,7 @@ class SlabCache:
 
     @property
     def name(self) -> str:
-        try:
-            return self._slab_cache["name"].string()
-        except pwndbg.dbg_mod.Error:
-            return ""
+        return self._slab_cache["name"].string()
 
     @property
     def offset(self) -> int:
