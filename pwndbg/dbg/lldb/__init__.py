@@ -347,7 +347,7 @@ class LLDBType(pwndbg.dbg_mod.Type):
 
     @override
     def __hash__(self):
-        return hash(self.inner)
+        return self.inner.__hash__()
 
     @override
     def __eq__(self, rhs: object) -> bool:
