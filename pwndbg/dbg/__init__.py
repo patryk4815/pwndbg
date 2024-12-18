@@ -764,6 +764,61 @@ class Type:
         # if there is a better debugger-specific way to do this.
         return [field.name for field in self.fields()]
 
+    def enum_member(self, field_name: str) -> int | None:
+        """
+        Retrieve the integer value of an enum member.
+
+        It returns:
+        - integer value, when found field
+        - returns None, If the field does not exist
+        """
+        if self.code != TypeCode.ENUM:
+            raise ValueError('only enum supported')
+
+        return next((f.enumval for f in self.fields() if f.name == field_name), None)
+
+    def offsetof(self, field_name: str, *, base_offset_bits: int = 0) -> int | None:
+        """
+        Calculate the byte offset of a field within a struct or union.
+
+        This method recursively traverses nested structures and unions, and it computes the
+        byte-aligned offset for the specified field.
+
+        It returns:
+        - offset in bytes if found
+        - None if the field doesn't exist or if an unsupported alignment/bit-field is encountered
+        """
+        NESTED_TYPES = (TypeCode.STRUCT, TypeCode.UNION)
+        struct_type = self
+
+        if struct_type.code == TypeCode.TYPEDEF:
+            struct_type = struct_type.strip_typedefs()
+
+        if struct_type.code == TypeCode.POINTER:
+            struct_type = struct_type.target().strip_typedefs()
+
+        if struct_type.code not in NESTED_TYPES:
+            return None
+
+        for field in struct_type.fields():
+            field_offset_bits = base_offset_bits + field.bitpos
+
+            if field.name == field_name:
+                byte_size = pwndbg.aglib.typeinfo.ptrsize
+                if field_offset_bits % byte_size != 0:
+                    # Possible bit-fields, misaligned struct, or unexpected alignment
+                    # This case is not supported because it introduces complexities
+                    # in handling non-byte-aligned or bit-level field offsets
+                    return None
+
+                return field_offset_bits // byte_size
+
+            nested_offset = field.type.offsetof(field_name, base_offset_bits=field_offset_bits)
+            if nested_offset is not None:
+                return nested_offset
+
+        return None
+
     def __eq__(self, rhs: object) -> bool:
         """
         Returns True if types are the same

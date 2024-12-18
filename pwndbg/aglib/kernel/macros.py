@@ -9,7 +9,7 @@ import pwndbg.aglib.typeinfo
 
 
 def container_of(ptr: int, typename: str, fieldname: str) -> pwndbg.dbg_mod.Value:
-    obj_addr = int(ptr) - pwndbg.aglib.typeinfo.struct_offset(typename, fieldname)
+    obj_addr = int(ptr) - pwndbg.aglib.typeinfo.load(typename).offsetof(fieldname)
     return pwndbg.aglib.memory.get_typed_pointer(typename, obj_addr)
 
 
@@ -52,7 +52,7 @@ def compound_head(page: pwndbg.dbg_mod.Value) -> pwndbg.dbg_mod.Value:
     if int(head) & 1:
         return (head - 1).cast(page.type.pointer()).dereference()
 
-    pg_head = pwndbg.aglib.typeinfo.enum_member("enum pageflags", "PG_head")
+    pg_head = pwndbg.aglib.typeinfo.load("enum pageflags").enum_member("PG_head")
     assert pg_head is not None, "Type 'enum pageflags' not found Or member 'PG_head' not exists"
 
     # https://elixir.bootlin.com/linux/v6.2/source/include/linux/page-flags.h#L212
