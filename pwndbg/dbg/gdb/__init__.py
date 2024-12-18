@@ -1064,7 +1064,12 @@ class GDBType(pwndbg.dbg_mod.Type):
     def offsetof(self, field_name: str) -> int | None:
         # In LLDB this code don't work
         value = pwndbg.dbg.selected_inferior().create_value(0, self.pointer())
-        addr = value[field_name].address
+        try:
+            addr = value[field_name].address
+        except pwndbg.dbg_mod.Error as e:
+            # error: `There is no member named field_name
+            return None
+
         if addr is None:
             return None
         return int(addr)
