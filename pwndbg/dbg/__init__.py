@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import contextlib
 from enum import Enum
-from typing import Any
+from typing import Any, Set
 from typing import Awaitable
 from typing import Callable
 from typing import Coroutine
@@ -778,7 +778,7 @@ class Type:
 
         return next((f.enumval for f in self.fields() if f.name == field_name), None)
 
-    def offsetof(self, field_name: str, *, base_offset_bits: int = 0) -> int | None:
+    def offsetof(self, field_name: str, *, base_offset_bits: int = 0, nested_cyclic_types: Set[Type]=None) -> int | None:
         """
         Calculate the byte offset of a field within a struct or union.
 
@@ -791,6 +791,8 @@ class Type:
         """
         NESTED_TYPES = (TypeCode.STRUCT, TypeCode.UNION)
         struct_type = self
+        if nested_cyclic_types is None:
+            nested_cyclic_types = set()
 
         if struct_type.code == TypeCode.TYPEDEF:
             struct_type = struct_type.strip_typedefs()
@@ -801,6 +803,10 @@ class Type:
         if struct_type.code not in NESTED_TYPES:
             return None
 
+        if struct_type in nested_cyclic_types:
+            return None
+
+        nested_cyclic_types.add(struct_type)
         for field in struct_type.fields():
             field_offset_bits = base_offset_bits + field.bitpos
 
@@ -814,7 +820,7 @@ class Type:
 
                 return field_offset_bits // byte_size
 
-            nested_offset = field.type.offsetof(field_name, base_offset_bits=field_offset_bits)
+            nested_offset = field.type.offsetof(field_name, base_offset_bits=field_offset_bits, nested_cyclic_types=nested_cyclic_types)
             if nested_offset is not None:
                 return nested_offset
 
