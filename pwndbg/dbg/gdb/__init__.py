@@ -1060,6 +1060,14 @@ class GDBType(pwndbg.dbg_mod.Type):
     def keys(self) -> List[str]:
         return list(self.inner.keys())
 
+    @override
+    def offsetof(self, field_name: str) -> int | None:
+        value = pwndbg.dbg.selected_inferior().create_value(0, self.pointer())
+        addr = value[field_name].address
+        if addr is None:
+            return None
+        return int(addr)
+
 
 class GDBValue(pwndbg.dbg_mod.Value):
     def __init__(self, inner: gdb.Value):

@@ -778,17 +778,7 @@ class Type:
 
         return next((f.enumval for f in self.fields() if f.name == field_name), None)
 
-    def offsetof(self, field_name: str, *, base_offset_bits: int = 0, nested_cyclic_types: List[Type]=None) -> int | None:
-        """
-        Calculate the byte offset of a field within a struct or union.
-
-        This method recursively traverses nested structures and unions, and it computes the
-        byte-aligned offset for the specified field.
-
-        It returns:
-        - offset in bytes if found
-        - None if the field doesn't exist or if an unsupported alignment/bit-field is encountered
-        """
+    def _offsetof(self, field_name: str, *, base_offset_bits: int = 0, nested_cyclic_types: List[Type]=None) -> int | None:
         NESTED_TYPES = (TypeCode.STRUCT, TypeCode.UNION)
         struct_type = self
         if nested_cyclic_types is None:
@@ -803,6 +793,7 @@ class Type:
         if struct_type.code not in NESTED_TYPES:
             return None
 
+        # TODO: `struct_type in nested_cyclic_types` is slow
         if struct_type in nested_cyclic_types:
             return None
         nested_cyclic_types.append(struct_type)
@@ -820,11 +811,24 @@ class Type:
 
                 return field_offset_bits // byte_size
 
-            nested_offset = field.type.offsetof(field_name, base_offset_bits=field_offset_bits, nested_cyclic_types=nested_cyclic_types)
+            nested_offset = field.type._offsetof(field_name, base_offset_bits=field_offset_bits, nested_cyclic_types=nested_cyclic_types)
             if nested_offset is not None:
                 return nested_offset
 
         return None
+
+    def offsetof(self, field_name: str) -> int | None:
+        """
+        Calculate the byte offset of a field within a struct or union.
+
+        This method recursively traverses nested structures and unions, and it computes the
+        byte-aligned offset for the specified field.
+
+        It returns:
+        - offset in bytes if found
+        - None if the field doesn't exist or if an unsupported alignment/bit-field is encountered
+        """
+        return self._offsetof(field_name)
 
     def __eq__(self, rhs: object) -> bool:
         """
