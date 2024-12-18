@@ -778,7 +778,7 @@ class Type:
 
         return next((f.enumval for f in self.fields() if f.name == field_name), None)
 
-    def offsetof(self, field_name: str, *, base_offset_bits: int = 0, nested_cyclic_types: Set[Type]=None) -> int | None:
+    def offsetof(self, field_name: str, *, base_offset_bits: int = 0, nested_cyclic_types: List[Type]=None) -> int | None:
         """
         Calculate the byte offset of a field within a struct or union.
 
@@ -792,7 +792,7 @@ class Type:
         NESTED_TYPES = (TypeCode.STRUCT, TypeCode.UNION)
         struct_type = self
         if nested_cyclic_types is None:
-            nested_cyclic_types = set()
+            nested_cyclic_types = list()
 
         if struct_type.code == TypeCode.TYPEDEF:
             struct_type = struct_type.strip_typedefs()
@@ -805,7 +805,7 @@ class Type:
 
         if struct_type in nested_cyclic_types:
             return None
-        nested_cyclic_types.add(struct_type)
+        nested_cyclic_types.append(struct_type)
 
         for field in struct_type.fields():
             field_offset_bits = base_offset_bits + field.bitpos
@@ -825,9 +825,6 @@ class Type:
                 return nested_offset
 
         return None
-
-    def __hash__(self):
-        raise NotImplementedError()
 
     def __eq__(self, rhs: object) -> bool:
         """

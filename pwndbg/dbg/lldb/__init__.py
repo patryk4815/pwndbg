@@ -346,10 +346,6 @@ class LLDBType(pwndbg.dbg_mod.Type):
         self.inner = inner
 
     @override
-    def __hash__(self):
-        return self.inner.__hash__()
-
-    @override
     def __eq__(self, rhs: object) -> bool:
         assert isinstance(rhs, LLDBType), "tried to compare LLDBType to other type"
         other: LLDBType = rhs

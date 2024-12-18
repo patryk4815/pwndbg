@@ -958,10 +958,6 @@ class GDBType(pwndbg.dbg_mod.Type):
         self.inner = inner
 
     @override
-    def __hash__(self):
-        return hash(self.inner)
-
-    @override
     def __eq__(self, rhs: object) -> bool:
         assert isinstance(rhs, GDBType), "tried to compare GDBType to other type"
         other: GDBType = rhs
