@@ -1067,11 +1067,12 @@ class GDBType(pwndbg.dbg_mod.Type):
         try:
             addr = value[field_name].address
         except pwndbg.dbg_mod.Error as e:
-            # error: `There is no member named field_name
+            # error: `There is no member named field_name`
             return None
 
         if addr is None:
-            return None
+            raise pwndbg.dbg_mod.Error('bug, this should no happen')
+
         return int(addr)
 
 
