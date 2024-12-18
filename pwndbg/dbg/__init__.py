@@ -805,8 +805,8 @@ class Type:
 
         if struct_type in nested_cyclic_types:
             return None
-
         nested_cyclic_types.add(struct_type)
+
         for field in struct_type.fields():
             field_offset_bits = base_offset_bits + field.bitpos
 
@@ -825,6 +825,9 @@ class Type:
                 return nested_offset
 
         return None
+
+    def __hash__(self):
+        raise NotImplementedError()
 
     def __eq__(self, rhs: object) -> bool:
         """
