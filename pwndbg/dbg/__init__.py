@@ -787,9 +787,6 @@ class Type:
         if struct_type.code == TypeCode.TYPEDEF:
             struct_type = struct_type.strip_typedefs()
 
-        if struct_type.code == TypeCode.POINTER:
-            struct_type = struct_type.target().strip_typedefs()
-
         if struct_type.code not in NESTED_TYPES:
             return None
 
@@ -802,14 +799,12 @@ class Type:
             field_offset_bits = base_offset_bits + field.bitpos
 
             if field.name == field_name:
-                byte_size = pwndbg.aglib.typeinfo.ptrsize
-                if field_offset_bits % byte_size != 0:
+                if field_offset_bits % 8 != 0:
                     # Possible bit-fields, misaligned struct, or unexpected alignment
                     # This case is not supported because it introduces complexities
                     # in handling non-byte-aligned or bit-level field offsets
                     return None
-
-                return field_offset_bits // byte_size
+                return field_offset_bits // 8
 
             nested_offset = field.type._offsetof(field_name, base_offset_bits=field_offset_bits, nested_cyclic_types=nested_cyclic_types)
             if nested_offset is not None:
@@ -828,6 +823,8 @@ class Type:
         - offset in bytes if found
         - None if the field doesn't exist or if an unsupported alignment/bit-field is encountered
         """
+        if self.code == TypeCode.POINTER:
+            return self.target()._offsetof(field_name)
         return self._offsetof(field_name)
 
     def __eq__(self, rhs: object) -> bool:

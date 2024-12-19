@@ -760,6 +760,8 @@ class GDBProcess(pwndbg.dbg_mod.Process):
         # 'GNU/Linux': linux
         # 'none': bare metal
 
+        # FIXME: źle zaimplementowane, bo freebsd to nie linux...
+        # FIXME: ta samo firmware? to tez nie jest do konca linux?
         return "GNU/Linux" in abi
 
     @override
