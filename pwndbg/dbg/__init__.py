@@ -784,7 +784,7 @@ class Type:
         NESTED_TYPES = (TypeCode.STRUCT, TypeCode.UNION)
         struct_type = self
         if nested_cyclic_types is None:
-            nested_cyclic_types = list()
+            nested_cyclic_types = []
 
         if struct_type.code == TypeCode.TYPEDEF:
             struct_type = struct_type.strip_typedefs()
