@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import contextlib
 from enum import Enum
-from typing import Any, Set
+from typing import Any
 from typing import Awaitable
 from typing import Callable
 from typing import Coroutine
@@ -774,11 +774,13 @@ class Type:
         - returns None, If the field does not exist
         """
         if self.code != TypeCode.ENUM:
-            raise ValueError('only enum supported')
+            raise ValueError("only enum supported")
 
         return next((f.enumval for f in self.fields() if f.name == field_name), None)
 
-    def _offsetof(self, field_name: str, *, base_offset_bits: int = 0, nested_cyclic_types: List[Type]=None) -> int | None:
+    def _offsetof(
+        self, field_name: str, *, base_offset_bits: int = 0, nested_cyclic_types: List[Type] = None
+    ) -> int | None:
         NESTED_TYPES = (TypeCode.STRUCT, TypeCode.UNION)
         struct_type = self
         if nested_cyclic_types is None:
@@ -806,7 +808,11 @@ class Type:
                     return None
                 return field_offset_bits // 8
 
-            nested_offset = field.type._offsetof(field_name, base_offset_bits=field_offset_bits, nested_cyclic_types=nested_cyclic_types)
+            nested_offset = field.type._offsetof(
+                field_name,
+                base_offset_bits=field_offset_bits,
+                nested_cyclic_types=nested_cyclic_types,
+            )
             if nested_offset is not None:
                 return nested_offset
 

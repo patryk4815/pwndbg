@@ -384,8 +384,8 @@ class GDBProcess(pwndbg.dbg_mod.Process):
 
     @override
     def vmmap(self) -> pwndbg.dbg_mod.MemoryMap:
-        import pwndbg.gdblib.vmmap
         import pwndbg.aglib.qemu
+        import pwndbg.gdblib.vmmap
         from pwndbg.gdblib import gdb_version
 
         pages = pwndbg.gdblib.vmmap.get()
@@ -1068,12 +1068,12 @@ class GDBType(pwndbg.dbg_mod.Type):
         value = pwndbg.dbg.selected_inferior().create_value(0, self.pointer())
         try:
             addr = value[field_name].address
-        except pwndbg.dbg_mod.Error as e:
+        except pwndbg.dbg_mod.Error:
             # error: `There is no member named field_name`
             return None
 
         if addr is None:
-            raise pwndbg.dbg_mod.Error('bug, this should no happen')
+            raise pwndbg.dbg_mod.Error("bug, this should no happen")
 
         return int(addr)
 
