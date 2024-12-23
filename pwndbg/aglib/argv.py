@@ -29,6 +29,8 @@ def update() -> None:
     if not pwndbg.dbg.selected_inferior().is_linux():
         return None
 
+    print('arvg on start')
+
     global _stack_ptr
     if _stack_ptr is not None:
         return None

@@ -74,12 +74,14 @@ class StartEvent:
         if self.running or not gdb.selected_thread():
             return
 
+        print('on_start_event1', self.running)
         self.running = True
 
         for function in self.registered:
             function()
 
     def on_exited(self) -> None:
+        print('on_start_event2', self.running)
         self.running = False
 
     def on_stop(self) -> None:
@@ -362,6 +364,7 @@ def invoke_event(event: Any, *args: Any, **kwargs: Any) -> None:
 
 def after_reload(start: bool = True) -> None:
     if gdb.selected_inferior().pid:
+        print('invoke_event gdb.events.start')
         invoke_event(gdb.events.stop)
         invoke_event(gdb.events.start)
         invoke_event(gdb.events.new_objfile)

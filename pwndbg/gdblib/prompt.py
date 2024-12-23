@@ -92,6 +92,8 @@ def prompt_hook(*a: Any) -> None:
     new = (gdb.selected_inferior(), gdb.selected_thread())
 
     if cur != new:
+        print(f'cur = {cur}')
+        print(f'new = {new}')
         pwndbg.gdblib.events.after_reload(start=cur is None)
         cur = new
 
