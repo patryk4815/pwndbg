@@ -10,6 +10,11 @@ from typing import Tuple
 from urllib.parse import ParseResult
 from urllib.parse import urlparse
 
+from pwnlib import asm
+from pwnlib import constants
+from pwnlib import shellcraft
+from pwnlib.util.net import sockaddr
+
 import pwndbg.aglib.memory
 import pwndbg.aglib.shellcode
 import pwndbg.commands
@@ -34,7 +39,7 @@ def get_shellcode_regs() -> ShellcodeRegs:
         (
             reg_name
             for reg_name in register_set.gpr
-            if reg_name not in syscall_abi.register_arguments
+            if reg_name not in syscall_abi.register_arguments + [syscall_abi.syscall_register]
         )
     )
     assert (
@@ -50,10 +55,6 @@ def stack_size_alignment(s: int) -> int:
 
 
 def asm_replace_file(replace_fd: int, filename: str) -> Tuple[int, str]:
-    from pwnlib import asm
-    from pwnlib import constants
-    from pwnlib import shellcraft
-
     filename = filename.encode() + b"\x00"
 
     regs = get_shellcode_regs()
@@ -85,11 +86,6 @@ def asm_replace_file(replace_fd: int, filename: str) -> Tuple[int, str]:
 
 
 def asm_replace_socket(replace_fd: int, socket_data: ParsedSocket) -> Tuple[int, str]:
-    from pwnlib import asm
-    from pwnlib import constants
-    from pwnlib import shellcraft
-    from pwnlib.util.net import sockaddr
-
     sockdata, addr_len, _ = sockaddr(socket_data.address, socket_data.port, socket_data.ip_version)
     socktype = {"tcp": "SOCK_STREAM", "udp": "SOCK_DGRAM"}[socket_data.protocol]
     family = {"ipv4": "AF_INET", "ipv6": "AF_INET6"}[socket_data.ip_version]
