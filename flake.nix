@@ -119,6 +119,7 @@
             (final: prev: {
               pwndbg_gdb = import ./nix/overlay/gdb.nix { prev = prev; };
               pwndbg_lldb = import ./nix/overlay/lldb.nix { prev = prev; };
+              lldb-win = import ./nix/overlay/lldb-win.nix { prev = prev; };
             })
           ];
         }
@@ -221,6 +222,7 @@
         system:
         {
           default = self.packages.${system}.pwndbg;
+          lldb-win = pkgsBySystem.${system}.lldb-win;
         }
         // (crossDrvs system)
         // (portableDrvs system)
