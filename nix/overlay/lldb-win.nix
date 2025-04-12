@@ -98,7 +98,7 @@ let
         "-DLLDB_INCLUDE_TESTS=OFF"
 
         "-DLLDB_ENABLE_LUA=OFF"
-        "-DLLVM_ENABLE_LTO=ON" # # Run OFF for local testing. Faster compilation with OFF.
+        "-DLLVM_ENABLE_LTO=OFF" # LTO disabled due to a deadlock issue in Clang/LLVM during compilation.
         "-DLLDB_ENABLE_SWIG=ON"
         "-DLLDB_ENABLE_PYTHON=ON"
 
