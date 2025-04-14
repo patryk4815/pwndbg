@@ -206,7 +206,8 @@ let
       }:
       prev.unicorn.overrideAttrs (
         old:
-        lib.optionalAttrs ((isBuildSource old)) {
+#        lib.optionalAttrs ((isBuildSource old)) {
+        {
           nativeBuildInputs =
             old.nativeBuildInputs
             ++ [
@@ -216,6 +217,12 @@ let
             ++ lib.optionals stdenv.hostPlatform.isDarwin [
               cctools
             ];
+
+          sourceRoot = "source/bindings/python";
+
+          preBuild = ''
+            chmod -R +w /build/
+          '';
 
           postPatch = lib.optionalString stdenv.hostPlatform.isDarwin ''
             substituteInPlace ./src/CMakeLists.txt \
