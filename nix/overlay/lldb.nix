@@ -32,6 +32,8 @@ let
         (prev.pwndbg_lldb.override { stdenv = llvmPackages.stdenv; }).overrideAttrs (old: {
           patches = (old.patches or [ ]) ++ [
             ./lldb-fix-cross-python.patch
+            ./lldb-fix-loongarch.patch
+            ./lldb-fix-riscv.patch
           ];
           nativeBuildInputs = [
             cmake

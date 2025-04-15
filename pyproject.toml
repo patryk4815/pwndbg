@@ -104,6 +104,7 @@ default-groups = []
 
 [tool.uv.sources]
 pt = { git = "https://github.com/martinradev/gdb-pt-dump", rev = "50227bda0b6332e94027f811a15879588de6d5cb" }
+unicorn = { git = "https://github.com/unicorn-engine/unicorn.git", subdirectory = "bindings/python", rev = "loongarch-port" }
 
 [tool.ruff.lint.flake8-builtins]
 builtins-ignorelist = [
