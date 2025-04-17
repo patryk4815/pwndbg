@@ -51,7 +51,7 @@ def word_size() -> int:
 
     Values taken from https://github.com/golang/go/blob/20b79fd5775c39061d949569743912ad5e58b0e7/src/go/types/sizes.go#L233-L252
     """
-    return {"i386": 4, "x86-64": 8, "aarch64": 8, "arm": 4, "rv64": 8, "powerpc": 8, "sparc": 8}[
+    return {"i386": 4, "x86-64": 8, "aarch64": 8, "arm": 4, "rv64": 8, "powerpc": 8, "sparc": 8, "loongarch64": 8}[
         pwndbg.aglib.arch.name
     ]
 
