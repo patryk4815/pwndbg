@@ -27,20 +27,22 @@ def find_lldb_python_path() -> str:
     """
     Finds the Python path pointed to by the LLDB executable.
     """
-    lldb = subprocess.run(["lldb", "-P"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if lldb.returncode != 0:
-        print(f"Could not find the LLDB Python Path: {lldb.stderr!r}", file=sys.stderr)
-        sys.exit(1)
+    # lldb = subprocess.run(["lldb", "-P"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # if lldb.returncode != 0:
+    #     print(f"Could not find the LLDB Python Path: {lldb.stderr!r}", file=sys.stderr)
+    #     sys.exit(1)
+    #
+    # folder = lldb.stdout.decode("utf-8").strip()
+    # if not os.path.exists(folder):
+    #     print(f"Path pointed to by LLDB ('{folder}') does not exist", file=sys.stderr)
+    #     sys.exit(1)
 
-    folder = lldb.stdout.decode("utf-8").strip()
-    if not os.path.exists(folder):
-        print(f"Path pointed to by LLDB ('{folder}') does not exist", file=sys.stderr)
-        sys.exit(1)
-
+    folder = "/Users/psondej/projekty/pwndbg/lldb/site-packages"
+    print(folder)
     return folder
 
 
-if __name__ == "__main__":
+def main():
     debug = "PWNDBG_LLDB_DEBUG" in os.environ
 
     # Find the path for the LLDB Python bindings.
@@ -69,29 +71,10 @@ if __name__ == "__main__":
     lldb.SBDebugger.Initialize()
     debugger = lldb.SBDebugger.Create()
 
-    # Resolve the location of lldbinit.py based on the environment, if needed.
-    lldbinit_dir = os.path.dirname(sys.argv[0])
-    if "PWNDBG_LLDBINIT_DIR" in os.environ:
-        lldbinit_dir = os.environ["PWNDBG_LLDBINIT_DIR"]
-    lldbinit_dir = os.path.abspath(lldbinit_dir)
-    lldbinit_path = os.path.join(lldbinit_dir, "lldbinit.py")
-
-    if debug:
-        print(f"[-] Launcher: Importing main LLDB module at '{lldbinit_path}'")
-
-    if not os.path.exists(lldbinit_path):
-        print(f"Could not find '{lldbinit_path}, please specify it with PWNDBG_LLDBINIT_DIR")
-        sys.exit(1)
-
-    if lldbinit_path not in sys.path:
-        sys.path.append(lldbinit_dir)
-
-    # Load the lldbinit module we just found.
-    debugger.HandleCommand(f"command script import {lldbinit_path}")
+    from pwndbginit import lldbinit, pwndbglldbhandler
+    debugger.HandleCommand(f"command script import {pwndbglldbhandler.__file__}")
 
     # Initialize the debugger, proper.
-    import lldbinit
-
     if debug:
         print("[-] Launcher: Initializing Pwndbg")
     lldbinit.main(debugger, lldb_version[0], lldb_version[1], debug=debug)
@@ -127,3 +110,7 @@ if __name__ == "__main__":
     # Dispose of our debugger and terminate LLDB.
     lldb.SBDebugger.Destroy(debugger)
     lldb.SBDebugger.Terminate()
+
+
+if __name__ == "__main__":
+    main()

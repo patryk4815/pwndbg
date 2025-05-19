@@ -152,6 +152,11 @@ class GDBFrame(pwndbg.dbg_mod.Frame):
         return GDBRegisters(self)
 
     @override
+    def step_instruction(self) -> None:
+        # TODO: disable events?
+        gdb.execute("stepi", to_string=True)
+
+    @override
     def reg_write(self, name: str, val: int) -> bool:
         if name not in pwndbg.aglib.regs:
             return False

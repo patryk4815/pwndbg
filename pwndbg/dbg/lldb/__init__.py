@@ -126,6 +126,10 @@ class LLDBFrame(pwndbg.dbg_mod.Frame):
         return LLDBRegisters(self.inner.GetRegisters(), self.proc)
 
     @override
+    def step_instruction(self) -> None:
+        self.inner.StepInstruction(False)
+
+    @override
     def reg_write(self, name: str, val: int) -> bool:
         if val < 0:
             raise RuntimeError("Tried to write a register with a negative value")

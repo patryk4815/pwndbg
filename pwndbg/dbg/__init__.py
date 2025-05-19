@@ -214,6 +214,12 @@ class Frame:
         """
         raise NotImplementedError()
 
+    def step_instruction(self) -> None:
+        """
+        Access the values of the registers in this frame.
+        """
+        raise NotImplementedError()
+
     def reg_write(self, name: str, val: int) -> bool:
         """
         Sets the value of the register with the given name to the given value.

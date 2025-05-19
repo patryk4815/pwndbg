@@ -78,7 +78,7 @@ in
         jemalloc-static
         pyEnv
         (pkgs.writeShellScriptBin "pwndbg" ''
-          exec ${lib.getBin pkgs.gdb}/bin/gdb --quiet --nx --init-command="$REPO_ROOT/gdbinit.py" $@
+          exec -a pwndbg ${lib.getBin pkgs.gdb}/bin/gdb --quiet --nx --init-command="$REPO_ROOT/gdbinit.py" $@
         '')
       ]
       ++ pkgs.lib.optionals isLLDB [
@@ -88,7 +88,7 @@ in
             export LLDB_DEBUGSERVER_PATH=${lib.makeBinPath [ pkgs.lldb_20 ]}/lldb-server
           '')
           + ''
-            exec ${lib.getBin pyEnv}/bin/python3 $REPO_ROOT/pwndbg-lldb.py $@
+            exec -a pwndbg-lldb ${lib.getBin pyEnv}/bin/python3 $REPO_ROOT/pwndbg-lldb.py $@
           ''
         ))
       ];
