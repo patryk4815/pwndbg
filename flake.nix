@@ -98,13 +98,133 @@
               pwndbg_gdb =
                 let
                   libiconv = prev.pkgsStatic.libiconvReal;
+                  readlineStatic = prev.readline.overrideAttrs (old': {
+                        configureFlags = (old'.configureFlags or [ ]) ++ [
+                          "--enable-static"
+                          "--disable-shared"
+                        ];
+                        postInstall = ''
+                          cp -v ./libhistory.a $out/lib/
+                          cp -v ./libreadline.a $out/lib/
+                        '';
+                      });
+                  elfutils = prev.enableDebugging ((prev.pkgsStatic.elfutils.override { enableDebuginfod = true; }).overrideAttrs (old': {
+                         configureFlags =
+                            [
+                              "--program-prefix=eu-" # prevent collisions with binutils
+                              "--enable-deterministic-archives"
+                              "--enable-libdebuginfod"
+                              "--disable-debuginfod"
+                              "--enable-symbol-versioning"
+                              "--enable-static"
+                             "--disable-shared"
+                         ];
+
+                        buildPhase = ''
+                          cd debuginfod
+                          make libdebuginfod.a
+                          cd ../libelf
+                          make libelf.a
+                          cd ../lib
+                          make libeu.a
+                          cd ..
+                        '';
+
+                        installPhase = ''
+                          find . -name '*.a'
+                          find . -name '*.pc'
+                          cat ./config/libelf.pc
+                          cat ./config/libdebuginfod.pc
+
+                          runHook postInstall
+                        '';
+
+                        patches = (old'.patches or [ ]) ++ [
+                          ./elf.patch
+                        ];
+                        postInstall = ''
+                          ls -al
+                          find . -name '*.a'
+                          find . -name '*.pc'
+                          cat config/libdebuginfod.pc
+
+                          mkdir -p $out/lib/
+                          mkdir -p $bin/bin/
+                          mkdir -p $man/share/
+                          mkdir -p $dev/lib/pkgconfig
+                          cp -rf ${prev.lib.getDev prev.elfutils}/include/ $dev/include/
+
+                          rm -f $out/lib/*.so || true
+                          rm -f $out/lib/*.so.* || true
+
+                          cp -v ./lib/libeu.a $out/lib/
+                          cp -v ./libelf/libelf.a $out/lib/
+                          cp -v ./debuginfod/libdebuginfod.a $out/lib/
+
+                          cp ./config/libdebuginfod.pc $dev/lib/pkgconfig/
+                          cp ./config/libelf.pc $dev/lib/pkgconfig/
+
+                          # sed -i 's@Libs:@Requires: libcurl,json-c,libelf\nLibs:@g' $dev/lib/pkgconfig/libdebuginfod.pc
+                          sed -i 's@Libs:@Requires: libcurl,json-c,libelf\nLibs:@g' $dev/lib/pkgconfig/libdebuginfod.pc
+                          # sed -i 's@Libs:@Libs.private: -lelf -lcurl -ljson-c\nLibs:@g' $dev/lib/pkgconfig/libdebuginfod.pc
+                          sed -i 's@-ldebuginfod@-ldebuginfod -lc@g' $dev/lib/pkgconfig/libdebuginfod.pc
+
+                          sed -i 's@-lelf@-lelf -leu@g' $dev/lib/pkgconfig/libelf.pc
+                        '';
+                         meta = old'.meta // {
+                          badPlatforms = [ ];
+                        };
+                        doInstallCheck = false;
+                      }));
                 in
-                (prev.pwndbg_gdb.override {
+                (prev.enableDebugging ((prev.pwndbg_gdb.override {
                   inherit libiconv;
+                  hostCpuOnly = true;
+
+                  ncurses = prev.pkgsStatic.ncurses;
+                  readline = readlineStatic;
+                  gmp = prev.pkgsStatic.gmp;
+                  mpfr = prev.pkgsStatic.mpfr;
+                  expat = prev.pkgsStatic.expat;
+
+                  libipt = prev.pkgsStatic.libipt;
+                  zlib = prev.pkgsStatic.zlib;
+                  zstd = prev.pkgsStatic.zstd;
+                  xz = prev.pkgsStatic.xz;
+                  sourceHighlight = prev.pkgsStatic.sourceHighlight;
+                  elfutils = elfutils;
+#                  elfutils = prev.enableDebugging ((prev.pkgsStatic.elfutils.override {
+#                    enableDebuginfod = true;
+#                  }).overrideAttrs(old': {
+#                    meta = old'.meta // {
+#                      badPlatforms = [ ];
+#                    };
+#                  }));
+
                 }).overrideAttrs
                   (old: {
-                    buildInputs = old.buildInputs ++ [ libiconv ];
-                  });
+                    env.NIX_LDFLAGS = "-lcurl";
+
+                    buildInputs = old.buildInputs ++ [
+                        libiconv
+#                        (prev.enableDebugging (prev.pkgsStatic.curlMinimal.override {
+#                           #openssl = (prev.enableDebugging prev.pkgsStatic.openssl);
+#                           wolfsslSupport = true;
+##                           rustlsSupport = true;
+#                           opensslSupport = false;
+#                           http2Support = false;
+#                           scpSupport = false;
+#                        }))
+#                        (prev.enableDebugging prev.pkgsStatic.json_c)
+                    ];
+                    configureFlags = (old.configureFlags ++ [ ]) ++ [
+                      "--without-guile"
+                    ];
+                    nativeBuildInputs = old.nativeBuildInputs ++ [
+                        libiconv
+                    ];
+                    dontStrip = true;
+                  })));
             })
             (
               final: prev:
@@ -231,7 +351,7 @@
       packages = forAllSystems (
         system:
         {
-          default = self.packages.${system}.pwndbg;
+          default = pkgsBySystem.${system}.pwndbg_gdb;
         }
         // (crossDrvs system)
         // (portableDrvs system)
