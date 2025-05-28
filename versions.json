@@ -1,5 +1,10 @@
 [
   {
+    "version": "dev",
+    "title": "dev",
+    "aliases": []
+  },
+  {
     "version": "2025.04.13-loongarch64",
     "title": "2025.04.13-loongarch64",
     "aliases": []
