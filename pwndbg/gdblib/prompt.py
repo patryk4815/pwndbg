@@ -53,6 +53,9 @@ last_alive_state = False
 
 
 def show_hint() -> None:
+    if environ.get("PWNDBG_DISABLE_COLORS") == "1":
+        return
+
     hint_lines = (
         f"loaded {len(pwndbg.commands.commands)} pwndbg commands."
         f" Type {message.notice('pwndbg [filter]')} for a list.",

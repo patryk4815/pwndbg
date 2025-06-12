@@ -874,7 +874,7 @@ class PointerType(Type):
         ptr = load_uint(pwndbg.aglib.memory.read(addr, word))
         if ptr == 0:
             return "nil"
-        inner = self.inner.dump(ptr, fmt)
+        inner = self.inner.dump(addr, fmt)
         prefix = fmt.fmt_debug(f"(val @ {ptr:#x}) ")
         return f"{prefix}&{inner}"
 

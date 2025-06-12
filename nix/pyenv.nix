@@ -21,6 +21,9 @@ let
   };
 
   pkgsNeedSetuptools = [
+    "py"
+    "pytest-forked"
+    "pytest-time"
     "capstone"
     "unicorn"
     "parso"

@@ -54,7 +54,7 @@ def test_riscv64_jalr(qemu_assembly_run):
     dis = pwndbg.color.strip(dis)
 
     expected = (
-        "LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA\n"
+        "LEGEND:x STACK | HEAP | CODE | DATA | WX | RODATA\n"
         "───────────────────────[ DISASM / rv64 / set emulate on ]───────────────────────\n"
         " ► 0x1001158 <_start>       c.li   a0, 0xa          A0 => 0xa\n"
         "   0x100115a <_start+2>     c.li   a1, 0x14         A1 => 0x14\n"

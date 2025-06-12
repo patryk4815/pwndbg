@@ -77,20 +77,20 @@ in
       ++ [
         jemalloc-static
         pyEnv
-        (pkgs.writeShellScriptBin "pwndbg" ''
-          exec ${lib.getBin pkgs.gdb}/bin/gdb --quiet --nx --init-command="$REPO_ROOT/gdbinit.py" $@
-        '')
+#        (pkgs.writeShellScriptBin "pwndbg" ''
+#          exec ${lib.getBin pkgs.gdb}/bin/gdb --quiet --nx --init-command="$REPO_ROOT/gdbinit.py" $@
+#        '')
       ]
       ++ pkgs.lib.optionals isLLDB [
         pkgs.lldb_20
-        (pkgs.writeShellScriptBin "pwndbg-lldb" (
-          (lib.optionalString (!pkgs.stdenv.isDarwin) ''
-            export LLDB_DEBUGSERVER_PATH=${lib.makeBinPath [ pkgs.lldb_20 ]}/lldb-server
-          '')
-          + ''
-            exec ${lib.getBin pyEnv}/bin/python3 $REPO_ROOT/pwndbg-lldb.py $@
-          ''
-        ))
+#        (pkgs.writeShellScriptBin "pwndbg-lldb" (
+#          (lib.optionalString (!pkgs.stdenv.isDarwin) ''
+#            export LLDB_DEBUGSERVER_PATH=${lib.makeBinPath [ pkgs.lldb_20 ]}/lldb-server
+#          '')
+#          + ''
+#            exec ${lib.getBin pyEnv}/bin/python3 $REPO_ROOT/pwndbg-lldb.py $@
+#          ''
+#        ))
       ];
     shellHook = ''
       export PWNDBG_NO_AUTOUPDATE=1

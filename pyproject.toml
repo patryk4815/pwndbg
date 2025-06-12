@@ -26,6 +26,7 @@ dependencies = [
     "rich>=13.7.1,<14",
     # Optional? only for qemu-system vmmap
     "pt",
+    "pytest-time>=0.4.1",
 ]
 
 [project.optional-dependencies]
@@ -57,6 +58,7 @@ tests = [
     "pytest==8.0.2",
     "pytest-cov>=4.1.0,<5",
     "coverage[toml]>=7.5.0,<8",
+    "pytest-forked>=1.6.0",
 ]
 docs = [
     "mdutils",
@@ -126,10 +128,14 @@ builtins-ignorelist = [
 ]
 
 [tool.hatch.build.targets.sdist]
-include = ["/pwndbg"]
+include = ["/pwndbg", "/pwndbginit"]
 
 [tool.hatch.build.targets.wheel]
-include = ["/pwndbg"]
+include = ["/pwndbg", "/pwndbginit"]
+
+[project.scripts]
+pytest-gdb = "pwndbginit.pytest_gdb:main"
+pwndbg = "pwndbginit.pwndbg_gdb:main"
 
 [build-system]
 requires = ["hatchling"]

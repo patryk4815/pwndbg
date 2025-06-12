@@ -19,7 +19,6 @@ from pwndbg.lib import tempfile
 
 _start_binary_called = False
 
-QEMU_PORT = os.environ.get("QEMU_PORT")
 ZIGPATH = os.environ.get("ZIGPATH")
 
 COMPILATION_TARGETS_TYPE = Literal[
@@ -59,6 +58,55 @@ COMPILE_AND_RUN_INFO: Dict[COMPILATION_TARGETS_TYPE, Tuple[str, Tuple[str, ...],
 }
 
 
+def reserve_port(ip="127.0.0.1", port=0):
+    """
+    https://github.com/Yelp/ephemeral-port-reserve/blob/master/ephemeral_port_reserve.py
+
+    Bind to an ephemeral port, force it into the TIME_WAIT state, and unbind it.
+
+    This means that further ephemeral port alloctions won't pick this "reserved" port,
+    but subprocesses can still bind to it explicitly, given that they use SO_REUSEADDR.
+    By default on linux you have a grace period of 60 seconds to reuse this port.
+    To check your own particular value:
+    $ cat /proc/sys/net/ipv4/tcp_fin_timeout
+    60
+
+    By default, the port will be reserved for localhost (aka 127.0.0.1).
+    To reserve a port for a different ip, provide the ip as the first argument.
+    Note that IP 0.0.0.0 is interpreted as localhost.
+    """
+    import contextlib
+    import errno
+    from socket import SO_REUSEADDR
+    from socket import SOL_SOCKET
+    from socket import error as SocketError
+    from socket import socket
+
+    port = int(port)
+    with contextlib.closing(socket()) as s:
+        s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        try:
+            s.bind((ip, port))
+        except SocketError as e:
+            # socket.error: EADDRINUSE Address already in use
+            if e.errno == errno.EADDRINUSE and port != 0:
+                s.bind((ip, 0))
+            else:
+                raise
+
+        # the connect below deadlocks on kernel >= 4.4.0 unless this arg is greater than zero
+        s.listen(1)
+
+        sockname = s.getsockname()
+
+        # these three are necessary just to get the port into a TIME_WAIT state
+        with contextlib.closing(socket()) as s2:
+            s2.connect(sockname)
+            sock, _ = s.accept()
+            with contextlib.closing(sock):
+                return sockname[1]
+
+
 @pytest.fixture
 def qemu_assembly_run():
     """
@@ -71,6 +119,8 @@ def qemu_assembly_run():
         raise Exception("ZIGPATH not defined")
 
     PATH_TO_ZIG = os.path.join(ZIGPATH, "zig")
+
+    QEMU_PORT = reserve_port()
 
     qemu: subprocess.Popen = None
 
@@ -131,7 +181,7 @@ def qemu_assembly_run():
         gdb.execute("set exception-verbose on")
         gdb.execute("set context-reserve-lines never")
         gdb.execute("set width 80")
-        gdb.execute(f"target remote :{QEMU_PORT}")
+        gdb.execute(f"target remote 127.0.0.1:{QEMU_PORT}")
 
         global _start_binary_called
         # if _start_binary_called:
@@ -153,6 +203,8 @@ def qemu_start_binary():
     """
 
     qemu: subprocess.Popen = None
+
+    QEMU_PORT = reserve_port()
 
     if QEMU_PORT is None:
         print("'QEMU_PORT' environment variable not set")
@@ -180,7 +232,7 @@ def qemu_start_binary():
         gdb.execute("set exception-verbose on")
         gdb.execute("set context-reserve-lines never")
         gdb.execute("set width 80")
-        gdb.execute(f"target remote :{QEMU_PORT}")
+        gdb.execute(f"target remote 127.0.0.1:{QEMU_PORT}")
 
         global _start_binary_called
         # if _start_binary_called:
