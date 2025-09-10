@@ -34,7 +34,10 @@ let
           stdenv = llvmPackages.stdenv;
           # Out-of-memory when building with debuginfo enabled.. build use more than 32gb+ ram
           libclang = llvmPackages_20.libclang.overrideAttrs (old: {
-            separateDebugInfo = false;
+#            separateDebugInfo = false;
+             cmakeFlags = old.cmakeFlags ++ [
+                "LLVM_PARALLEL_LINK_JOBS=1"
+             ];
           });
         }).overrideAttrs
           (old: {
