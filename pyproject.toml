@@ -6,32 +6,6 @@ authors = [{ name = "Dominik 'disconnect3d' Czarnota", email = "dominik.b.czarno
 requires-python = ">=3.10, <4"
 readme = "README.md"
 dependencies = [
-    "capstone==6.0.0a5",
-    "unicorn>=2.1.4,<3",
-    "pwntools>=4.14.1,<5",
-    "sortedcontainers>=2.4.0,<3",
-    "tabulate>=0.9.0,<0.10",
-    "typing-extensions>=4.15.0,<5",
-    "pycparser~=2.23",
-    "pyelftools>=0.32,<0.33",
-    "pygments>=2.19.2,<3",
-    "psutil>=7.0.0,<8",
-    # We install uv to the venv
-    "uv>=0.8.14",
-    # Optional? only for 'ipi' command
-    "ipython>=8.37.0,<9",
-    # Optional? only for 'ropgadget' command
-    "ropgadget==7.6",
-    # Optional? only for 'ai' commands
-    "requests>=2.32.5,<3",
-    # Optional? only for pretty print traceback
-    "rich>=14.1.0,<15",
-    # Optional? only for qemu-system vmmap
-    "pt",
-    # Optional? 'ziglang' must be optional, as it is not available on every platform.
-    # It is only used for the 'cymbol' command and some `asm` functionality.
-    "ziglang==0.14.1",
-
     "gdb_for_pwndbg @ https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_x86_64.whl ; platform_system == 'Linux' and platform_machine == 'x86_64'",
     "gdb_for_pwndbg @ https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_aarch64.whl ; platform_system == 'Linux' and platform_machine == 'aarch64'",
     "gdb_for_pwndbg @ https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl ; platform_system == 'Linux' and platform_machine == 'loongarch64'",
@@ -40,57 +14,6 @@ dependencies = [
     "gdb_for_pwndbg @ https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_ppc64le.whl ; platform_system == 'Linux' and platform_machine == 'ppc64le'",
     "gdb_for_pwndbg @ https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_31_armv7l.whl ; platform_system == 'Linux' and platform_machine == 'armv7l'",
     "gdb_for_pwndbg @ https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_i686.whl ; platform_system == 'Linux' and platform_machine == 'i686'",
-]
-
-[project.optional-dependencies]
-lldb = [
-    # The LLDB REPL requires readline.
-    'gnureadline>=8.2.13,<9; sys_platform != "win32"',
-    'pyreadline3>=3.5.4,<4; sys_platform == "win32"',
-#    "lldb-for-pwndbg==20.1.8.post1",
-]
-gdb = [
-#    "gdb-for-pwndbg==16.3.0.post1",
-]
-
-[dependency-groups]
-dev = [
-    "sortedcontainers-stubs>=2.4.3,<3",
-    "types-pygments>=2.19.0.20250809,<3",
-    "types-requests>=2.32.4.20250809,<3",
-    "types-tabulate>=0.9.0.20240106,<0.10",
-    "types-gdb>=12.1.4.20240704,<13",
-    "types-psutil>=7.0.0.20250601,<8",
-]
-lint = [
-    # Newer mypy has more types to fix. Please fix types in the future.
-    "mypy==1.13.0",
-    "isort>=5.13.2,<6",
-    "ruff>=0.4.1,<0.5",
-    "vermin>=1.6.0,<2",
-]
-tests = [
-    # Newer versions of pytest break CI on GitHub
-    "pytest==8.0.2",
-    "pytest-cov>=4.1.0,<5",
-    "coverage[toml]>=7.5.0,<8",
-]
-docs = [
-    "mdutils",
-    "mkdocs",
-    "mkdocs-gen-files",
-    "mkdocs-material",
-    "mkdocs-minify-plugin",
-    "mkdocs-rss-plugin",
-    "mkdocstrings",
-    "mkdocstrings-python",
-    "pymdown-extensions",
-    "mkdocs-api-autonav",
-    "griffe-modernized-annotations",
-    # Used by mkdocstrings to format source.
-    "ruff",
-    "mike",
-    "mkdocs-awesome-nav",
 ]
 
 [tool.ruff]

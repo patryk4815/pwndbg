@@ -142,6 +142,18 @@
             pkgs = pkgsBySystem.${system};
             inputs = inputs;
           };
+          pyenv = (import ./nix/pwndbg.nix {
+            pkgs = pkgsBySystem.${system};
+            inputs = inputs;
+          }).meta.pwndbgVenv;
+          pyenv-ppc64le = (import ./nix/pwndbg.nix {
+            pkgs = pkgsBySystem.${system}.pkgsCross.powernv;
+            inputs = inputs;
+          }).meta.pwndbgVenv;
+          pyenv-riscv64 = (import ./nix/pwndbg.nix {
+            pkgs = pkgsBySystem.${system}.pkgsCross.riscv64;
+            inputs = inputs;
+          }).meta.pwndbgVenv;
           pwndbg-dev = import ./nix/pwndbg.nix {
             pkgs = pkgsBySystem.${system};
             inputs = inputs;
