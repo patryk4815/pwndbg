@@ -15,13 +15,13 @@ dependencies = [
     "pycparser~=2.23",
     "pyelftools>=0.32,<0.33",
     "pygments>=2.19.2,<3",
-    "psutil>=7.0.0,<8",
+#    "psutil>=7.0.0,<8",
     # We install uv to the venv
 #    "uv>=0.8.14",
     # Optional? only for 'ipi' command
     "ipython>=8.37.0,<9",
     # Optional? only for 'ropgadget' command
-    "ropgadget==7.6",
+#    "ropgadget==7.6",
     # Optional? only for 'ai' commands
     "requests>=2.32.5,<3",
     # Optional? only for pretty print traceback

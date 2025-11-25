@@ -89,22 +89,6 @@ filecache = [
 ]
 
 [[package]]
-name = "capstone"
-version = "6.0.0a5"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/00/d3/41b6b8689d54478e680907fbd512106e450594581c6898d7ad82090cc2a0/capstone-6.0.0a5.tar.gz", hash = "sha256:8f33b3ec2e2e93998d7bcb1b4d83faf2a2e27ac8516f8b1a945f956bd32d27f7", size = 4906056 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/55/f5/9264cec292f66bdedb11650534ff07289499859dfcaea74455c3099a5fab/capstone-6.0.0a5-cp38-abi3-macosx_10_9_x86_64.whl", hash = "sha256:2d82f08ad53bc5cef99afb4ec795ac48a3b6f60b87b6be59f5cd471f33297590", size = 1886083 },
-    { url = "https://files.pythonhosted.org/packages/e7/82/512eec0561a8d25b55066dc924987264e99d9254a22f5fe56be7decc8968/capstone-6.0.0a5-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:946e9c6d22b71ff223bc673d67bdebb6a29ce0b633663e63748b7c20ee9dfd32", size = 1954096 },
-    { url = "https://files.pythonhosted.org/packages/c7/00/ea0266c352eb19d9a4de027cde4bc1237a01b8c37651197e7f4b257912bc/capstone-6.0.0a5-cp38-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:469e8c2103dd55dfa19a257dc51cdeee0b580ef038bd5bc51538939990ca2901", size = 2231113 },
-    { url = "https://files.pythonhosted.org/packages/f6/c0/a7d08f537c0b8caf61b99a7a47f7641b0aedda087c2cfa9d9132a08c46bd/capstone-6.0.0a5-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:8c75b2596b7fd81a4072fe6ca69d979b13f2e2d503b1743606137314aa7fcb79", size = 2285342 },
-    { url = "https://files.pythonhosted.org/packages/6b/98/9890cbf39aac7bb0bf3ae8a5da0d2efb2f16132c5d8537add290ce3ecc65/capstone-6.0.0a5-cp38-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:4be0b926f86091044584409e30a9f7415e54dba866fade11b7606ddcaca1015f", size = 2236292 },
-    { url = "https://files.pythonhosted.org/packages/06/dc/e75de4b26c95d3ea7dbba153d953c43dd59dc42cb28083f7f3b5798e087b/capstone-6.0.0a5-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:226dfa4c35052d77bc32b15001e5d28e96bd7091b3b90ce1a9d348d8b7d3243a", size = 2289685 },
-    { url = "https://files.pythonhosted.org/packages/17/6c/8f8f071bf513468456bf8028695bdee5ed919780d523eda5d81a5542a0d4/capstone-6.0.0a5-cp38-abi3-win_amd64.whl", hash = "sha256:3f72c8a23f2008fea7b00f524b2ce6d1a3792d24c6a98e23e0941614479b8831", size = 2252281 },
-    { url = "https://files.pythonhosted.org/packages/2e/d5/da2a39f41562d6d2fcdf7b71f9055f26407111a0d540569fddcd1cda0a8e/capstone-6.0.0a5-cp38-abi3-win_arm64.whl", hash = "sha256:a39abe2e5c0cbf9f03c78e08ff83cbf36e666a2d84a5030f4259e6a86f80cb0a", size = 2216355 },
-]
-
-[[package]]
 name = "certifi"
 version = "2025.8.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1278,21 +1262,6 @@ wheels = [
 ]
 
 [[package]]
-name = "psutil"
-version = "7.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/2a/80/336820c1ad9286a4ded7e845b2eccfcb27851ab8ac6abece774a6ff4d3de/psutil-7.0.0.tar.gz", hash = "sha256:7be9c3eba38beccb6495ea33afd982a44074b78f28c434a1f51cc07fd315c456", size = 497003 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/e6/2d26234410f8b8abdbf891c9da62bee396583f713fb9f3325a4760875d22/psutil-7.0.0-cp36-abi3-macosx_10_9_x86_64.whl", hash = "sha256:101d71dc322e3cffd7cea0650b09b3d08b8e7c4109dd6809fe452dfd00e58b25", size = 238051 },
-    { url = "https://files.pythonhosted.org/packages/04/8b/30f930733afe425e3cbfc0e1468a30a18942350c1a8816acfade80c005c4/psutil-7.0.0-cp36-abi3-macosx_11_0_arm64.whl", hash = "sha256:39db632f6bb862eeccf56660871433e111b6ea58f2caea825571951d4b6aa3da", size = 239535 },
-    { url = "https://files.pythonhosted.org/packages/2a/ed/d362e84620dd22876b55389248e522338ed1bf134a5edd3b8231d7207f6d/psutil-7.0.0-cp36-abi3-manylinux_2_12_i686.manylinux2010_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:1fcee592b4c6f146991ca55919ea3d1f8926497a713ed7faaf8225e174581e91", size = 275004 },
-    { url = "https://files.pythonhosted.org/packages/bf/b9/b0eb3f3cbcb734d930fdf839431606844a825b23eaf9a6ab371edac8162c/psutil-7.0.0-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4b1388a4f6875d7e2aff5c4ca1cc16c545ed41dd8bb596cefea80111db353a34", size = 277986 },
-    { url = "https://files.pythonhosted.org/packages/eb/a2/709e0fe2f093556c17fbafda93ac032257242cabcc7ff3369e2cb76a97aa/psutil-7.0.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a5f098451abc2828f7dc6b58d44b532b22f2088f4999a937557b603ce72b1993", size = 279544 },
-    { url = "https://files.pythonhosted.org/packages/50/e6/eecf58810b9d12e6427369784efe814a1eec0f492084ce8eb8f4d89d6d61/psutil-7.0.0-cp37-abi3-win32.whl", hash = "sha256:ba3fcef7523064a6c9da440fc4d6bd07da93ac726b5733c29027d7dc95b39d99", size = 241053 },
-    { url = "https://files.pythonhosted.org/packages/50/1b/6921afe68c74868b4c9fa424dad3be35b095e16687989ebbb50ce4fceb7c/psutil-7.0.0-cp37-abi3-win_amd64.whl", hash = "sha256:4cf3d4eb1aa9b348dec30105c55cd9b7d4629285735a102beb4441e38db90553", size = 244885 },
-]
-
-[[package]]
 name = "ptyprocess"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1316,13 +1285,11 @@ version = "2025.10.20"
 source = { editable = "." }
 dependencies = [
     { name = "ipython" },
-    { name = "psutil" },
     { name = "pycparser" },
     { name = "pyelftools" },
     { name = "pygments" },
     { name = "requests" },
     { name = "rich" },
-    { name = "ropgadget" },
     { name = "sortedcontainers" },
     { name = "tabulate" },
     { name = "typing-extensions" },
@@ -1401,14 +1368,12 @@ requires-dist = [
     { name = "lldb-for-pwndbg", marker = "python_full_version == '3.13.*' and platform_machine == 'loongarch64' and platform_system == 'Linux' and extra == 'lldb'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/lldb-v21.1.5.post1/lldb_for_pwndbg-21.1.5.post1-cp313-cp313-manylinux_2_36_loongarch64.whl" },
     { name = "lldb-for-pwndbg", marker = "python_full_version == '3.14.*' and platform_machine == 'loongarch64' and platform_system == 'Linux' and extra == 'lldb'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/lldb-v21.1.5.post1/lldb_for_pwndbg-21.1.5.post1-cp314-cp314-manylinux_2_36_loongarch64.whl" },
     { name = "lldb-for-pwndbg", marker = "platform_machine != 'loongarch64' and extra == 'lldb'", specifier = "==21.1.5.post1" },
-    { name = "psutil", specifier = ">=7.0.0,<8" },
     { name = "pycparser", specifier = "~=2.23" },
     { name = "pyelftools", specifier = ">=0.32,<0.33" },
     { name = "pygments", specifier = ">=2.19.2,<3" },
     { name = "pyreadline3", marker = "sys_platform == 'win32' and extra == 'lldb'", specifier = ">=3.5.4,<4" },
     { name = "requests", specifier = ">=2.32.5,<3" },
     { name = "rich", specifier = ">=14.1.0,<15" },
-    { name = "ropgadget", specifier = "==7.6" },
     { name = "sortedcontainers", specifier = ">=2.4.0,<3" },
     { name = "tabulate", specifier = ">=0.9.0,<0.10" },
     { name = "typing-extensions", specifier = ">=4.15.0,<5" },
@@ -1735,18 +1700,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/fe/75/af448d8e52bf1d8fa6a9d089ca6c07ff4453d86c65c145d0a300bb073b9b/rich-14.1.0.tar.gz", hash = "sha256:e497a48b844b0320d45007cdebfeaeed8db2a4f4bcf49f15e455cfc4af11eaa8", size = 224441 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e3/30/3c4d035596d3cf444529e0b2953ad0466f6049528a879d27534700580395/rich-14.1.0-py3-none-any.whl", hash = "sha256:536f5f1785986d6dbdea3c75205c473f970777b4a0d6c6dd1b696aa05a3fa04f", size = 243368 },
-]
-
-[[package]]
-name = "ropgadget"
-version = "7.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "capstone" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b5/ad/7c6c9078c143d5cb7965f2d06a3aadc5f9e638276dd86e57ce8c9a30457c/ropgadget-7.6.tar.gz", hash = "sha256:8883c54e4627073a2ce7cd8adbaf7ef72478442c0a5da1308c3c2e37641174c3", size = 25848 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/de/a51149ceea68dc0abbf62b9381ebe87db493a19192d563fe77bfdad5fb02/ROPGadget-7.6-py3-none-any.whl", hash = "sha256:749176f0d210498869ac849a1414912488c0c8c4853b823d22888e2b49a67391", size = 32397 },
 ]
 
 [[package]]
