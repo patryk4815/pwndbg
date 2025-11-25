@@ -538,13 +538,8 @@ name = "gdb-for-pwndbg"
 version = "16.3.0.post5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version == '3.14.*' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
     "(python_full_version >= '3.13' and platform_machine != 'loongarch64') or (python_full_version >= '3.13' and platform_system != 'Linux' and sys_platform != 'linux') or python_full_version >= '3.15'",
-    "python_full_version == '3.13.*' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
-    "python_full_version == '3.12.*' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
-    "python_full_version == '3.11.*' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
     "(python_full_version < '3.13' and platform_machine != 'loongarch64') or (python_full_version < '3.13' and platform_system != 'Linux' and sys_platform != 'linux')",
-    "python_full_version < '3.11' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bc/07/e57a33374ee400463488d46d3341cc7949150ef1d72c829d256d13c090ef/gdb_for_pwndbg-16.3.0.post5-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:6a621cd244508728c02b8bc6f9bc4c7a27de2ddfd58feb09d40e3aa87557a52e", size = 10985171 },
@@ -870,13 +865,8 @@ name = "lldb-for-pwndbg"
 version = "21.1.5.post1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version == '3.14.*' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
     "(python_full_version >= '3.13' and platform_machine != 'loongarch64') or (python_full_version >= '3.13' and platform_system != 'Linux' and sys_platform != 'linux') or python_full_version >= '3.15'",
-    "python_full_version == '3.13.*' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
-    "python_full_version == '3.12.*' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
-    "python_full_version == '3.11.*' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
     "(python_full_version < '3.13' and platform_machine != 'loongarch64') or (python_full_version < '3.13' and platform_system != 'Linux' and sys_platform != 'linux')",
-    "python_full_version < '3.11' and platform_machine == 'loongarch64' and platform_system != 'Linux' and sys_platform == 'linux'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f6/ad/657dd6beda91519e3809f597be7aad820d9b80ffc63cdbc8af5cfd5af70d/lldb_for_pwndbg-21.1.5.post1-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:3dd7b97de6691539d55d34b55d3d516ecd16b16ad93a01bfd21b5de33746989d", size = 54247386 },
@@ -1602,7 +1592,7 @@ dependencies = [
 
 [package.optional-dependencies]
 gdb = [
-    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'loongarch64' or platform_system != 'Linux' or python_full_version >= '3.15'" },
+    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'loongarch64'" },
     { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp310-cp310-manylinux_2_36_loongarch64.whl" }, marker = "python_full_version < '3.11' and platform_machine == 'loongarch64' and platform_system == 'Linux'" },
     { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp311-cp311-manylinux_2_36_loongarch64.whl" }, marker = "python_full_version == '3.11.*' and platform_machine == 'loongarch64' and platform_system == 'Linux'" },
     { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp312-cp312-manylinux_2_36_loongarch64.whl" }, marker = "python_full_version == '3.12.*' and platform_machine == 'loongarch64' and platform_system == 'Linux'" },
@@ -1611,7 +1601,7 @@ gdb = [
 ]
 lldb = [
     { name = "gnureadline", marker = "sys_platform != 'win32'" },
-    { name = "lldb-for-pwndbg", version = "21.1.5.post1", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'loongarch64' or platform_system != 'Linux' or python_full_version >= '3.15'" },
+    { name = "lldb-for-pwndbg", version = "21.1.5.post1", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'loongarch64'" },
     { name = "lldb-for-pwndbg", version = "21.1.5.post1", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/lldb-v21.1.5.post1/lldb_for_pwndbg-21.1.5.post1-cp310-cp310-manylinux_2_36_loongarch64.whl" }, marker = "python_full_version < '3.11' and platform_machine == 'loongarch64' and platform_system == 'Linux'" },
     { name = "lldb-for-pwndbg", version = "21.1.5.post1", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/lldb-v21.1.5.post1/lldb_for_pwndbg-21.1.5.post1-cp311-cp311-manylinux_2_36_loongarch64.whl" }, marker = "python_full_version == '3.11.*' and platform_machine == 'loongarch64' and platform_system == 'Linux'" },
     { name = "lldb-for-pwndbg", version = "21.1.5.post1", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/lldb-v21.1.5.post1/lldb_for_pwndbg-21.1.5.post1-cp312-cp312-manylinux_2_36_loongarch64.whl" }, marker = "python_full_version == '3.12.*' and platform_machine == 'loongarch64' and platform_system == 'Linux'" },
@@ -1664,7 +1654,7 @@ requires-dist = [
     { name = "gdb-for-pwndbg", marker = "python_full_version == '3.12.*' and platform_machine == 'loongarch64' and platform_system == 'Linux' and extra == 'gdb'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp312-cp312-manylinux_2_36_loongarch64.whl" },
     { name = "gdb-for-pwndbg", marker = "python_full_version == '3.13.*' and platform_machine == 'loongarch64' and platform_system == 'Linux' and extra == 'gdb'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl" },
     { name = "gdb-for-pwndbg", marker = "python_full_version == '3.14.*' and platform_machine == 'loongarch64' and platform_system == 'Linux' and extra == 'gdb'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp314-cp314-manylinux_2_36_loongarch64.whl" },
-    { name = "gdb-for-pwndbg", marker = "extra == 'gdb'", specifier = "==16.3.0.post5" },
+    { name = "gdb-for-pwndbg", marker = "platform_machine != 'loongarch64' and extra == 'gdb'", specifier = "==16.3.0.post5" },
     { name = "gnureadline", marker = "sys_platform != 'win32' and extra == 'lldb'", specifier = ">=8.2.13,<9" },
     { name = "ipython", specifier = ">=8.37.0,<9" },
     { name = "lldb-for-pwndbg", marker = "python_full_version == '3.10.*' and platform_machine == 'loongarch64' and platform_system == 'Linux' and extra == 'lldb'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/lldb-v21.1.5.post1/lldb_for_pwndbg-21.1.5.post1-cp310-cp310-manylinux_2_36_loongarch64.whl" },
@@ -1672,7 +1662,7 @@ requires-dist = [
     { name = "lldb-for-pwndbg", marker = "python_full_version == '3.12.*' and platform_machine == 'loongarch64' and platform_system == 'Linux' and extra == 'lldb'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/lldb-v21.1.5.post1/lldb_for_pwndbg-21.1.5.post1-cp312-cp312-manylinux_2_36_loongarch64.whl" },
     { name = "lldb-for-pwndbg", marker = "python_full_version == '3.13.*' and platform_machine == 'loongarch64' and platform_system == 'Linux' and extra == 'lldb'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/lldb-v21.1.5.post1/lldb_for_pwndbg-21.1.5.post1-cp313-cp313-manylinux_2_36_loongarch64.whl" },
     { name = "lldb-for-pwndbg", marker = "python_full_version == '3.14.*' and platform_machine == 'loongarch64' and platform_system == 'Linux' and extra == 'lldb'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/lldb-v21.1.5.post1/lldb_for_pwndbg-21.1.5.post1-cp314-cp314-manylinux_2_36_loongarch64.whl" },
-    { name = "lldb-for-pwndbg", marker = "extra == 'lldb'", specifier = "==21.1.5.post1" },
+    { name = "lldb-for-pwndbg", marker = "platform_machine != 'loongarch64' and extra == 'lldb'", specifier = "==21.1.5.post1" },
     { name = "psutil", specifier = ">=7.0.0,<8" },
     { name = "pwntools", specifier = ">=4.14.1,<5" },
     { name = "pycparser", specifier = "~=2.23" },
