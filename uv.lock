@@ -25,97 +25,97 @@ resolution-markers = [
 [[package]]
 name = "gdb-for-pwndbg"
 version = "16.3.0.post5"
-source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_aarch64.whl" }
+source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_aarch64.whl" }
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 'aarch64' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine == 'aarch64' and sys_platform == 'linux'",
 ]
 wheels = [
-    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:2db0116547765a69cd35e376ae1d98e10caf49b21cf1cbff6608f804fdf17189" },
+    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:f43d9356bf3d65774c7ea83fe9ba57016559131eee544bbac5917611f44de023" },
 ]
 
 [[package]]
 name = "gdb-for-pwndbg"
 version = "16.3.0.post5"
-source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_i686.whl" }
+source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_i686.whl" }
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 'i686' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine == 'i686' and sys_platform == 'linux'",
 ]
 wheels = [
-    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_i686.whl", hash = "sha256:40604387d9b9829fc6190e2d8c076d07d3541643664948777ad79dcae2b00a38" },
+    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_i686.whl", hash = "sha256:294ae15f61ac3a431643f9a97b4906705b5502bb2c999f63acbcbd1c0f4ba2e8" },
 ]
 
 [[package]]
 name = "gdb-for-pwndbg"
 version = "16.3.0.post5"
-source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_ppc64le.whl" }
+source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_ppc64le.whl" }
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 'ppc64le' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine == 'ppc64le' and sys_platform == 'linux'",
 ]
 wheels = [
-    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_ppc64le.whl", hash = "sha256:30b95238f4d4271f69e5c044edce09c4607303d3181a45bffce36b8be9d15458" },
+    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_ppc64le.whl", hash = "sha256:e787c6717ef06d68b252658ce4aba3683ab650e6364844755bd098fbd3e5c080" },
 ]
 
 [[package]]
 name = "gdb-for-pwndbg"
 version = "16.3.0.post5"
-source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_s390x.whl" }
+source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_s390x.whl" }
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 's390x' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine == 's390x' and sys_platform == 'linux'",
 ]
 wheels = [
-    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_s390x.whl", hash = "sha256:dbfa219a0e3f941356eebbaa5b7fd266c3bd66103ae6a101f8fc7e6b8a9e6088" },
+    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_s390x.whl", hash = "sha256:8b1ec190cd516a2bf5d1b93e7e244ebb212594594f8654d0a5a66cfab02f68ad" },
 ]
 
 [[package]]
 name = "gdb-for-pwndbg"
 version = "16.3.0.post5"
-source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_x86_64.whl" }
+source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_x86_64.whl" }
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 'x86_64' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine == 'x86_64' and sys_platform == 'linux'",
 ]
 wheels = [
-    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:29aa814d5bb3a7566a37dabc1f14fe80a4456acf0a2fe8df917edd5f49ae8712" },
+    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:261d2329e99cc4451ce27b9be3004a326214d24903597f6cb0a36fe2eb876b60" },
 ]
 
 [[package]]
 name = "gdb-for-pwndbg"
 version = "16.3.0.post5"
-source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_31_armv7l.whl" }
+source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_31_armv7l.whl" }
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 'armv7l' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine == 'armv7l' and sys_platform == 'linux'",
 ]
 wheels = [
-    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_31_armv7l.whl", hash = "sha256:bf6f9054b36a61d30e95a6e376a126d1cc22ba599340a0093fcd28d0af74ef5f" },
+    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_31_armv7l.whl", hash = "sha256:ebf5639bccad20dbc752fa3ae67eb18a762b5dbdb865a79d7be7c8be662b3d98" },
 ]
 
 [[package]]
 name = "gdb-for-pwndbg"
 version = "16.3.0.post5"
-source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl" }
+source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl" }
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 'loongarch64' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine == 'loongarch64' and sys_platform == 'linux'",
 ]
 wheels = [
-    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl", hash = "sha256:c7846be079cc1fb5934acb9e38abee6a2e0c1c9f761eff4b918bb2fd58f6555a" },
+    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl", hash = "sha256:cc6cf2274a9a7124f532e5f8f46e536b692b4d01c586c9de49b5088414fc330d" },
 ]
 
 [[package]]
 name = "gdb-for-pwndbg"
 version = "16.3.0.post5"
-source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_39_riscv64.whl" }
+source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_39_riscv64.whl" }
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 'riscv64' and sys_platform == 'linux'",
     "python_full_version < '3.13' and platform_machine == 'riscv64' and sys_platform == 'linux'",
 ]
 wheels = [
-    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_39_riscv64.whl", hash = "sha256:afc96a00a5c9d41dfab849fc4861750634910bf10fe6c243b992b5ee47b91f25" },
+    { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_39_riscv64.whl", hash = "sha256:08a4f2934c9947759f8990a06263b13a48f147ad93be4fdeadd03edf29a2c565" },
 ]
 
 [[package]]
@@ -123,24 +123,24 @@ name = "pwndbg"
 version = "2025.10.20"
 source = { editable = "." }
 dependencies = [
-    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_aarch64.whl" }, marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" },
-    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_i686.whl" }, marker = "platform_machine == 'i686' and sys_platform == 'linux'" },
-    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_ppc64le.whl" }, marker = "platform_machine == 'ppc64le' and sys_platform == 'linux'" },
-    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_s390x.whl" }, marker = "platform_machine == 's390x' and sys_platform == 'linux'" },
-    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_x86_64.whl" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_31_armv7l.whl" }, marker = "platform_machine == 'armv7l' and sys_platform == 'linux'" },
-    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl" }, marker = "platform_machine == 'loongarch64' and sys_platform == 'linux'" },
-    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_39_riscv64.whl" }, marker = "platform_machine == 'riscv64' and sys_platform == 'linux'" },
+    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_aarch64.whl" }, marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" },
+    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_i686.whl" }, marker = "platform_machine == 'i686' and sys_platform == 'linux'" },
+    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_ppc64le.whl" }, marker = "platform_machine == 'ppc64le' and sys_platform == 'linux'" },
+    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_s390x.whl" }, marker = "platform_machine == 's390x' and sys_platform == 'linux'" },
+    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_x86_64.whl" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_31_armv7l.whl" }, marker = "platform_machine == 'armv7l' and sys_platform == 'linux'" },
+    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl" }, marker = "platform_machine == 'loongarch64' and sys_platform == 'linux'" },
+    { name = "gdb-for-pwndbg", version = "16.3.0.post5", source = { url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_39_riscv64.whl" }, marker = "platform_machine == 'riscv64' and sys_platform == 'linux'" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "gdb-for-pwndbg", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_aarch64.whl" },
-    { name = "gdb-for-pwndbg", marker = "platform_machine == 'armv7l' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_31_armv7l.whl" },
-    { name = "gdb-for-pwndbg", marker = "platform_machine == 'i686' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_i686.whl" },
-    { name = "gdb-for-pwndbg", marker = "platform_machine == 'loongarch64' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl" },
-    { name = "gdb-for-pwndbg", marker = "platform_machine == 'ppc64le' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_ppc64le.whl" },
-    { name = "gdb-for-pwndbg", marker = "platform_machine == 'riscv64' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_39_riscv64.whl" },
-    { name = "gdb-for-pwndbg", marker = "platform_machine == 's390x' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_s390x.whl" },
-    { name = "gdb-for-pwndbg", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/test-release1/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_x86_64.whl" },
+    { name = "gdb-for-pwndbg", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_aarch64.whl" },
+    { name = "gdb-for-pwndbg", marker = "platform_machine == 'armv7l' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_31_armv7l.whl" },
+    { name = "gdb-for-pwndbg", marker = "platform_machine == 'i686' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_i686.whl" },
+    { name = "gdb-for-pwndbg", marker = "platform_machine == 'loongarch64' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_36_loongarch64.whl" },
+    { name = "gdb-for-pwndbg", marker = "platform_machine == 'ppc64le' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_ppc64le.whl" },
+    { name = "gdb-for-pwndbg", marker = "platform_machine == 'riscv64' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_39_riscv64.whl" },
+    { name = "gdb-for-pwndbg", marker = "platform_machine == 's390x' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_s390x.whl" },
+    { name = "gdb-for-pwndbg", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'", url = "https://github.com/pwndbg/pypi-for-pwndbg/releases/download/gdb-v16.3.0.post5/gdb_for_pwndbg-16.3.0.post5-cp313-cp313-manylinux_2_28_x86_64.whl" },
 ]
