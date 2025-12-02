@@ -68,12 +68,12 @@ all: $(ALL_TARGETS)
 	@$(GO) build -gcflags "-N -l" -o $@ $?
 	@# Not stripped on purpose
 
-gosample.i386.out : gosample.go
+gosample.i386.out : gosample.native.go
 	@echo "[+] Building '$@'"
 	@GOARCH=386 $(GO) build -gcflags "-N -l" -o $@ $?
 	@# Not stripped on purpose
 
-gosample.x86-64.out : gosample.go
+gosample.x86-64.out : gosample.native.go
 	@echo "[+] Building '$@'"
 	@GOARCH=amd64 $(GO) build -gcflags "-N -l" -o $@ $?
 	@# Not stripped on purpose
@@ -99,27 +99,27 @@ heap_bugs.x86-64.out: heap_bugs.x86-64.c
 
 # Note: we use -pthread -lpthread because we hit this bug on CI builds:
 # https://sourceware.org/bugzilla/show_bug.cgi?id=24548
-heap_vis.native.out: heap_vis.c
+heap_vis.native.out: heap_vis.native.c
 	@echo "[+] Building '$@'"
 	${CC} -g -O0 -Wno-nonnull -o $@ $? -pthread -lpthread
 
-heap_malloc_chunk.native.out: heap_malloc_chunk.c
+heap_malloc_chunk.native.out: heap_malloc_chunk.native.c
 	@echo "[+] Building '$@'"
 	${CC} -g -O0 -Wno-nonnull -Wno-unused-result -o $@ $? -pthread -lpthread
 
-heap_jemalloc_extent_info.native.out: heap_jemalloc_extent_info.c
+heap_jemalloc_extent_info.native.out: heap_jemalloc_extent_info.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} -g -O0 -Wno-nonnull -Wno-unused-result \
 	-o $@ $? \
 	-Wl,-Bstatic -ljemalloc -Wl,-Bdynamic -lpthread -lm -lstdc++ -pthread -ldl
 
-heap_jemalloc_heap.native.out: heap_jemalloc_heap.c
+heap_jemalloc_heap.native.out: heap_jemalloc_heap.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} -g -O0 -Wno-nonnull -Wno-unused-result \
 	-o $@ $? \
 	-Wl,-Bstatic -ljemalloc -Wl,-Bdynamic -lpthread -lm -lstdc++ -pthread -ldl
 
-heap_musl_dyn.native.out: heap_musl.c
+heap_musl_dyn.native.out: heap_musl.native.c
 	@echo "[+] Building '$@'"
 	${MUSLCC} -g3 -O0 -o $@ $?
 
@@ -128,11 +128,11 @@ heap_musl_dyn.native.out: heap_musl.c
 # here because it would ensure mallocng commands are tested on
 # a musl with no symbols. But that also makes it very hard to
 # write the tests.
-heap_musl_static.native.out: heap_musl.c
+heap_musl_static.native.out: heap_musl.native.c
 	@echo "[+] Building '$@'"
 	${MUSLCC} -g3 -O0 -static -o $@ $?
 
-multiple_threads.native.out: multiple_threads.c
+multiple_threads.native.out: multiple_threads.native.c
 	@echo "[+] Building '$@'"
 	${CC} -g -O0 -o $@ $? -pthread -lpthread
 
@@ -150,12 +150,12 @@ tls.i386.out: tls.i386.c
 	-target x86-linux-gnu \
 	-o $@ $?
 
-issue_1565.native.out: issue_1565.c
+issue_1565.native.out: issue_1565.native.c
 	@echo "[+] Building '$@'"
 	${CC} -g -O0 -o $@ $? -pthread -lpthread
 
 # TODO: Link against a specific GLIBC version >= 2.26
-initialized_heap_big.i386.out: initialized_heap.c
+initialized_heap_big.i386.out: initialized_heap.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} \
 	${CFLAGS} \
@@ -163,21 +163,21 @@ initialized_heap_big.i386.out: initialized_heap.c
 	-o $@ $?
 
 # TODO: Link against a specific GLIBC version.
-initialized_heap.x86-64.out: initialized_heap.c
+initialized_heap.x86-64.out: initialized_heap.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} \
 	${CFLAGS} \
 	-target x86_64-linux-gnu \
 	-o $@ $?
 
-onegadget.x86-64.out: onegadget.c
+onegadget.x86-64.out: onegadget.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} \
 	${CFLAGS} \
 	-target x86_64-linux-gnu \
 	-o $@ $?
 
-onegadget.i386.out: onegadget.c
+onegadget.i386.out: onegadget.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} \
 	${CFLAGS} \
@@ -188,23 +188,23 @@ clean :
 	@echo "[+] Cleaning stuff"
 	@rm -f $(LINKED_C) $(LINKED_ASM) $(LINKED_GO) *.out *.o
 
-linked_lists.native.out: linked-lists.c
+linked_lists.native.out: linked-lists.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} -fpie -g -o $@ $?
 
-reference_bin_pie.native.out: reference-binary.c
+reference_bin_pie.native.out: reference-binary.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} -fpie -o $@ $?
 
-reference_bin_nopie.native.out: reference-binary.c
+reference_bin_nopie.native.out: reference-binary.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} -fno-pie -o $@ $?
 
-reference_bin_nopie.i386.out: reference-binary.c
+reference_bin_nopie.i386.out: reference-binary.native.c
 	@echo "[+] Building '$@'"
 	${ZIGCC} -fno-pie -target x86-linux-gnu -o $@ $?
 
-symbol_1600_and_752.native.out: symbol_1600_and_752.cpp
+symbol_1600_and_752.native.out: symbol_1600_and_752.native.cpp
 	${CXX} -O0 -ggdb -Wno-pmf-conversions -o $@ $?
 
 canary.x86-64.out: canary.x86-64.c
