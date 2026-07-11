@@ -1618,19 +1618,19 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
                 raise pwndbg.dbg_mod.Error(f"Objfile '{objfile_endswith}' not found")
 
         symbol_for_preference = None
-        for sym, cast_type, resolved_addr in self._iter_symbols(name, type, objfile):
-            is_static = not sym.IsExternal()
+        for is_external, cast_type, resolved_addr in self._iter_symbols(name, type, objfile):
+            is_static = not is_external
             if prefer_static == is_static:
-                symbol_for_preference = sym, cast_type, resolved_addr
+                symbol_for_preference = cast_type, resolved_addr
                 break
 
             if symbol_for_preference is None:
-                symbol_for_preference = sym, cast_type, resolved_addr
+                symbol_for_preference = cast_type, resolved_addr
 
         if symbol_for_preference is None:
             return None
 
-        sym, cast_type, resolved_addr = symbol_for_preference
+        cast_type, resolved_addr = symbol_for_preference
         return self.create_value(resolved_addr, cast_type)
 
     @override
@@ -1650,7 +1650,7 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
 
     def _iter_symbols(
         self, name: str, type: pwndbg.dbg_mod.SymbolLookupType, objfile: lldb.SBModule | None = None
-    ) -> Iterator[tuple[lldb.SBSymbol, pwndbg.dbg_mod.Type, int]]:
+    ) -> Iterator[tuple[bool, pwndbg.dbg_mod.Type, int]]:
         # Info from commit: https://github.com/llvm/llvm-project/commit/bcf2cfbdc5f7b8998d1a06e2e4b640dd42a5b10f
         # eSymbolTypeFunction: eSymbolTypeCode with IsDebug() == true
         #   eSymbolTypeGlobal: eSymbolTypeData with IsDebug() == true and IsExternal() == true
@@ -1672,6 +1672,25 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         # Note using `evaluate_expression` on TLS Variables:
         # TLS variables may not work on some architectures. For example, this approach
         # works fine on x86_64, but may fail on aarch64 or other architectures.
+        #
+        # IMPORTANT: `FindSymbols` does a raw string compare against the loader symbol
+        # table and bypasses LLDB's name indices, so it never matches demangled/base
+        # names. We therefore query the index-backed `FindGlobalVariables` and
+        # `FindGlobalFunctions` first, and keep `FindSymbols` only as a fallback for
+        # symbols that live solely in the loader table with no debug info (and TLS).
+
+        want_var = type in (
+            pwndbg.dbg_mod.SymbolLookupType.VARIABLE,
+            pwndbg.dbg_mod.SymbolLookupType.ANY,
+        )
+        want_func = type in (
+            pwndbg.dbg_mod.SymbolLookupType.FUNCTION,
+            pwndbg.dbg_mod.SymbolLookupType.ANY,
+        )
+
+        # Addresses already yielded, so the FindSymbols fallback doesn't re-emit
+        # something the index-backed lookups already found (with a better type).
+        seen: set[int] = set()
 
         # We need to map variable types to symbols...
         # This approach may not work correctly if there are multiple global variables with the same <name> and <address>.
@@ -1679,7 +1698,7 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
         # NOTE: `FindGlobalVariables` returns ONLY variables that have DEBUG INFO.
         variables_types: dict[tuple[int, str], LLDBType] = {}
 
-        if type in (pwndbg.dbg_mod.SymbolLookupType.VARIABLE, pwndbg.dbg_mod.SymbolLookupType.ANY):
+        if want_var:
             variables: lldb.SBValueList
             if objfile:
                 variables = objfile.FindGlobalVariables(self.target, name, 0)
@@ -1692,10 +1711,59 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
                 #
                 # is_tls = var.error and var.error.description == 'no thread to evaluate TLS within'
 
+                var_type = LLDBType(var.GetType())
+                resolved_addr = int(var.GetLoadAddress())
                 # <address>, <variable_name>
-                key = (int(var.GetLoadAddress()), var.GetName())
-                variables_types[key] = LLDBType(var.GetType())
+                variables_types[(resolved_addr, var.GetName())] = var_type
 
+                # `FindGlobalVariables` gives us the real type directly, so yield
+                # these debug-info variables right away. TLS variables have an
+                # invalid load address and are handled by the fallback below.
+                if resolved_addr == lldb.LLDB_INVALID_ADDRESS:
+                    continue
+                # eValueTypeVariableStatic == file/function-scope static.
+                is_external = var.GetValueType() != lldb.eValueTypeVariableStatic
+                seen.add(resolved_addr)
+                yield is_external, var_type.pointer(), resolved_addr
+
+        # Functions: `FindGlobalFunctions` with `eMatchTypeNormal` (and
+        # `SBModule.FindFunctions` for the per-objfile case) consult the name
+        # indices, so this also matches demangled names.
+        if want_func:
+            if objfile:
+                functions = objfile.FindFunctions(name, lldb.eFunctionNameTypeAuto)
+            else:
+                functions = self.target.FindGlobalFunctions(name, 0, lldb.eMatchTypeNormal)
+            for i in range(functions.GetSize()):
+                ctx = functions.GetContextAtIndex(i)
+                func: lldb.SBFunction = ctx.function
+                fsym: lldb.SBSymbol = ctx.symbol
+
+                func_type: pwndbg.dbg_mod.Type
+                if func.IsValid():
+                    faddr = func.GetStartAddress()
+                    func_type = LLDBType(func.type).pointer()
+                elif fsym.IsValid():
+                    faddr = fsym.GetStartAddress()
+                    # No debug info, so LLDB can't give us a function type.
+                    func_type = pwndbg.aglib.typeinfo.pvoid
+                else:
+                    continue
+
+                if not faddr.IsValid():
+                    continue
+                resolved_addr = faddr.GetLoadAddress(self.target)
+                if resolved_addr == lldb.LLDB_INVALID_ADDRESS or resolved_addr in seen:
+                    continue
+
+                is_external = fsym.IsExternal() if fsym.IsValid() else True
+                seen.add(resolved_addr)
+                yield is_external, func_type, resolved_addr
+
+        # Fallback: raw symbol-table scan. The index-backed lookups above only see
+        # entries that made it into the name indices, so this catches symbols that
+        # live solely in the loader table with no debug info, as well as TLS
+        # symbols. Anything already yielded above is skipped via `seen`.
         domains = {
             pwndbg.dbg_mod.SymbolLookupType.ANY: (lldb.eSymbolTypeAny,),
             # TLS variables are included under `eSymbolTypeAny`, so we need to check
@@ -1723,6 +1791,7 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
                 if not addr.IsValid():
                     continue
 
+                is_external = sym.IsExternal()
                 resolved_addr = addr.GetLoadAddress(self.target)
                 resolved_size = sym.GetSize()
                 sym_name = sym.GetName()
@@ -1763,14 +1832,16 @@ class LLDBProcess(pwndbg.dbg_mod.Process):
                     # Symbols with type eSymbolTypeInvalid might represent TLS symbols.
                     # Attempt to resolve this symbol and verify if it provides a valid result.
                     tls = self._resolve_tls_symbol(sym)
-                    if tls:
-                        yield sym, cast_type, tls
+                    if tls and tls not in seen:
+                        seen.add(tls)
+                        yield is_external, cast_type, tls
                     continue
 
-                if resolved_addr == lldb.LLDB_INVALID_ADDRESS:
+                if resolved_addr == lldb.LLDB_INVALID_ADDRESS or resolved_addr in seen:
                     continue
 
-                yield sym, cast_type, resolved_addr
+                seen.add(resolved_addr)
+                yield is_external, cast_type, resolved_addr
 
     def types_with_name(self, name: str) -> Sequence[pwndbg.dbg_mod.Type]:
         types = self.target.FindTypes(name)
